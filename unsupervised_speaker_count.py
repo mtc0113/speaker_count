@@ -14,6 +14,7 @@ import statistics
 from numpy import linalg as la
 import csv
 import math
+
 # from scipy.spatial import distance
 
 # Move the control to Current Working Directory
@@ -50,12 +51,12 @@ PITCH_FEMALE_LOWER = 190  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
-PITCH_RATE_LOWER = 0.05     # Adopted from crowdpp Android Implementation
+PITCH_RATE_LOWER = 0.05  # Adopted from crowdpp Android Implementation
 PITCH_MU_LOWER = 50
 PITCH_MU_UPPER = 450
 PITCH_SIGMA_UPPER = 100
 
-MFCC_DIST_SAME_UN = 21.6    # Adopted from crowdpp Android Implementation
+MFCC_DIST_SAME_UN = 21.6  # Adopted from crowdpp Android Implementation
 
 # Selected YIN Signal Processing Parameters
 frame_length = 1024
@@ -95,10 +96,6 @@ def gender_decision(pitch_a, pitch_b):
             return 0  # Different gender
     else:
         return -1  # leave the job to MFCC
-
-
-
-
 
 
 # Function to Derive YIN and MFCC features for the Input Clip
@@ -196,8 +193,6 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
     return frame_count
 
 
-
-
 # Function to Remove Non-voiced Segments
 
 def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
@@ -246,8 +241,10 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
             segment_mfcc_str = np.array(row[2:])
             segment_mfcc = segment_mfcc_str.astype(float)
 
-            if revised_YIN_List[mfcc_line_count][0] == curr_audio_num and revised_YIN_List[mfcc_line_count][1] == curr_segment_num:
-                revised_MFCC_List.append((curr_audio_num, curr_segment_num, float(revised_YIN_List[mfcc_line_count][2]), frame_count) + tuple(segment_mfcc))
+            if revised_YIN_List[mfcc_line_count][0] == curr_audio_num and revised_YIN_List[mfcc_line_count][
+                1] == curr_segment_num:
+                revised_MFCC_List.append((curr_audio_num, curr_segment_num, float(revised_YIN_List[mfcc_line_count][2]),
+                                          frame_count) + tuple(segment_mfcc))
                 mfcc_line_count += 1
 
             if mfcc_line_count == line_count:
@@ -259,76 +256,65 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
     return line_count
 
 
-
-
 # Function to colculate the column mean of an MFCC matrix
 # Order of MFCC representation is (num_frames,n_fft)
 # MFCC is represented as an 1-D array obtained by appending 
 # 'num_frame' rows of size 'n_fft' placed side-by-side
 
-def get_column_mean(mfcc, num_frames):
+def get_column_mean(mfcc):
     column_mean_arr = []
-    
+
     # for i in range(n_fft):
     #     column = []
     #     for j in range(num_frames):
-    #         column.append(mfcc[i + j * n_fft]) 
-    
+    #         column.append(mfcc[i + j * n_fft])
+
     for i in range(n_mfcc):
         column = []
         for j in range(i, len(mfcc), n_mfcc):
             column.append(mfcc[j])
-    
+
         # print(len(column))
         column_mean = np.mean(column)
         column_mean_arr.append(column_mean)
-    
+
     return column_mean_arr
-        
-            
-
-
 
 
 # Function to find Distance (in degrees) between input MFCC matrices
 
-def get_Distance(mfcc1, num_frames1, mfcc2, num_frames2):
+def get_Distance(mfcc1, mfcc2):
     # Get aveage MFCC vector for the segment pair using column mean of the input matrices
-    mfcc_a = get_column_mean(mfcc1, num_frames1)
-    mfcc_b = get_column_mean(mfcc2, num_frames2) 
-    
-    # print("MFCC_a:", len(mfcc_a), "MFCC_b:", len(mfcc_b))
-        
+    mfcc_a = get_column_mean(mfcc1)
+    mfcc_b = get_column_mean(mfcc2)
+
     cosine_distance = np.dot(mfcc_a, mfcc_b) / (la.norm(mfcc_a) * la.norm(mfcc_b))
     # cosine_distance = distance.cosine(mfcc_a, mfcc_b)
-    
-      
+
     radian_distance = math.acos(cosine_distance)
     print("Radian Distance:", radian_distance)
-    
+
     degree_distance = math.degrees(radian_distance)
     print("Degree Distance:", degree_distance)
 
-    return degree_distance  
+    return degree_distance
 
 
+def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptral_file):
+    segment_frame_count = Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file)
 
-
-def main_function():
-    segment_frame_count = Generate_Feature_Files(speech_folder_name, file_extension, yin_file, mfcc_file)
-
-    voice_count = Remove_Non_Voiced(yin_file, mfcc_file, rev_mfcc_file, segment_frame_count)
+    voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
 
     if voice_count == 0:
         sys.exit("No Voiced Segment in Folder" + speech_folder_name)
     else:
         print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
-    
+
     MFCC_List = []
-    
-    with open(rev_mfcc_file, "r") as f:
+
+    with open(revised_ceptral_file, "r") as f:
         csv_reader = csv.reader(f, delimiter=',')
-        
+
         mfcc_line_count = 0
 
         for row in csv_reader:
@@ -338,25 +324,25 @@ def main_function():
             curr_segment_frame_count = int(row[3])
             segment_mfcc_str = np.array(row[4:])
             segment_mfcc = segment_mfcc_str.astype(float)
-        
-            MFCC_List.append((curr_audio_num, curr_segment_num, curr_segment_pitch, curr_segment_frame_count) + tuple(segment_mfcc))
+
+            MFCC_List.append(
+                (curr_audio_num, curr_segment_num, curr_segment_pitch, curr_segment_frame_count) + tuple(segment_mfcc))
             mfcc_line_count += 1
-            
+
             # print(len(segment_mfcc))
-    
+
         if mfcc_line_count == voice_count:
             print("File Copy OK\n")
-    
+
     f.close()
-    
+
     # iteratively pre-cluster the neighbor segments until no merging happens
-    
+
     while True:
         last_size = len(MFCC_List)
         p = 0
         q = 1
-        
-               
+
         while q < len(MFCC_List):
             item_p = MFCC_List[p]
             audio_num_p = item_p[0]
@@ -364,43 +350,46 @@ def main_function():
             segment_pitch_p = item_p[2]
             segment_frame_count_p = item_p[3]
             mfcc_p = item_p[4:]
-            
+
             item_q = MFCC_List[q]
             # audio_num_q = item_q[0]
             # segment_num_q = item_q[1]
             segment_pitch_q = item_q[2]
             segment_frame_count_q = item_q[3]
             mfcc_q = item_q[4:]
-            
-            distance = get_Distance(mfcc_p, segment_frame_count_p, mfcc_q, segment_frame_count_q)
+
+            distance = get_Distance(mfcc_p, mfcc_q)
             decision = gender_decision(segment_pitch_p, segment_pitch_q)
-            
-            print("p:", p, "q:", q,"Cosine Distance:", distance)
-            
+
+            print("p:", p, "q:", q, "Cosine Distance:", distance)
+
             if distance <= MFCC_DIST_SAME_UN and decision == 1:
                 revised_audio_num_p = audio_num_p
                 revised_segment_num_p = segment_num_p
-                revised_segment_pitch_p = (segment_pitch_p + segment_pitch_q)/2
+                revised_segment_pitch_p = (segment_pitch_p + segment_pitch_q) / 2
                 revised_segment_frame_count_p = segment_frame_count_p + segment_frame_count_q
                 revised_mfcc_p = mfcc_p + mfcc_q
-                
-                revised_item_p = (revised_audio_num_p, revised_segment_num_p, revised_segment_pitch_p, revised_segment_frame_count_p) + tuple(revised_mfcc_p)
+
+                revised_item_p = (revised_audio_num_p, revised_segment_num_p, revised_segment_pitch_p,
+                                  revised_segment_frame_count_p) + tuple(revised_mfcc_p)
                 MFCC_List[p] = revised_item_p
-                
+
                 MFCC_List.pop(q)
             else:
                 p = q
                 q += 1
-                
+
         if last_size == len(MFCC_List):
             break
-                
-    file_write(MFCC_List, merged_mfcc_file)
-    print("Last Size:", last_size,"\n")
-            
-            
-             
-    
+
+    file_write(MFCC_List, merged_ceptral_file)
+    print("Last Size:", last_size, "\n")
+
+
+def main_function():
+    merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+
+
 # Call of the main function
 
 main_function()
