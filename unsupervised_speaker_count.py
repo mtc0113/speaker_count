@@ -25,7 +25,7 @@ print(path, '\n')
 os.chdir(path)
 
 # Input Audio Details
-speech_folder_name = "Sample Conversation Files"
+speech_folder_name = "Test Audio Clip"
 
 if os.path.exists(speech_folder_name) == False:
     sys.exit("Folder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
@@ -56,7 +56,8 @@ PITCH_MU_LOWER = 50
 PITCH_MU_UPPER = 450
 PITCH_SIGMA_UPPER = 100
 
-MFCC_DIST_SAME_UN = 21.6  # Adopted from crowdpp Android Implementation
+MFCC_DIST_SAME_UN = 15.6  # Adopted from crowdpp Android Implementation
+MFCC_DIST_DIFF_UN = 21.6  # Adopted from crowdpp Android Implementation
 
 # Selected YIN Signal Processing Parameters
 frame_length = 1024
@@ -258,16 +259,11 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
 
 # Function to colculate the column mean of an MFCC matrix
 # Order of MFCC representation is (num_frames,n_fft)
-# MFCC is represented as an 1-D array obtained by appending 
+# MFCC is represented as an 1-D array obtained by appending
 # 'num_frame' rows of size 'n_fft' placed side-by-side
 
 def get_column_mean(mfcc):
     column_mean_arr = []
-
-    # for i in range(n_fft):
-    #     column = []
-    #     for j in range(num_frames):
-    #         column.append(mfcc[i + j * n_fft])
 
     for i in range(n_mfcc):
         column = []
@@ -292,10 +288,10 @@ def get_Distance(mfcc1, mfcc2):
     # cosine_distance = distance.cosine(mfcc_a, mfcc_b)
 
     radian_distance = math.acos(cosine_distance)
-    print("Radian Distance:", radian_distance)
+    # print("Radian Distance:", radian_distance)
 
     degree_distance = math.degrees(radian_distance)
-    print("Degree Distance:", degree_distance)
+    # print("Degree Distance:", degree_distance)
 
     return degree_distance
 
@@ -361,7 +357,7 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
             distance = get_Distance(mfcc_p, mfcc_q)
             decision = gender_decision(segment_pitch_p, segment_pitch_q)
 
-            print("p:", p, "q:", q, "Cosine Distance:", distance)
+            # print("p:", p, "q:", q,"Cosine Distance:", distance)
 
             if distance <= MFCC_DIST_SAME_UN and decision == 1:
                 revised_audio_num_p = audio_num_p
@@ -384,17 +380,62 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
 
     file_write(MFCC_List, merged_ceptral_file)
     print("Last Size:", last_size, "\n")
+    return MFCC_List
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
 
 def main_function():
-    merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+    mfcc_list = merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+    segment_count = len(mfcc_list)
+
+    # admit the first segment as speaker 1
+    speaker_count = 1
+    new_audio_num = mfcc_list[0][0]
+    new_segment_num = mfcc_list[0][1]
+    new_pitch = mfcc_list[0][2]
+    new_frame_count = mfcc_list[0][3]
+    new_mfcc = mfcc_list[0][4:]
+
+    for i in range(1, len(mfcc_list)):
+        diff_count = 0
+        for j in range(speaker_count):
+            print("i =", i, "j =", j, "List Size =", len(mfcc_list))
+            # for each segment i, compare it with each previously admitted segment j
+            pitch = mfcc_list[i][2]
+            frame_count = mfcc_list[i][3]
+            mfcc = mfcc_list[i][4:]
+
+            distance = get_Distance(new_mfcc, mfcc)
+
+            if gender_decision(pitch, new_pitch) == 0:  # different gender observed from pitch, so different speaker
+                diff_count += 1
+            elif distance >= MFCC_DIST_DIFF_UN:  # mfcc distance is larger than a threshold, so different speaker
+                diff_count += 1
+            else:  # mfcc distance is larger than a threshold, so different speaker
+                if gender_decision(pitch, new_pitch) == 1 and distance <= MFCC_DIST_SAME_UN:
+                    # Merge the segment
+                    new_pitch = (new_pitch + pitch) / 2
+                    new_frame_count = new_frame_count + frame_count
+                    new_mfcc = new_mfcc + mfcc
+
+                    new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
+                    mfcc_list[j] = new_item
+                    mfcc_list.pop(i)
+
+        # admit as a new speaker if different from all the admitted speakers
+        if diff_count == speaker_count:
+            speaker_count += 1
+            new_audio_num = mfcc_list[i][0]
+            new_segment_num = mfcc_list[i][1]
+            new_pitch = mfcc_list[i][2]
+            new_frame_count = mfcc_list[i][3]
+            new_mfcc = mfcc_list[i][4:]
+
+    return speaker_count
 
 
 # Call of the main function
 
-main_function()
-
-
-
+final_speaker_count = main_function()
+print(final_speaker_count, "number of different speakers detected in the audio clips\n")
