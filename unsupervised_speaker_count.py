@@ -386,6 +386,8 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
     print("Last Size:", last_size, "\n")
 
 
+# The main function for Unsupervised Speaker Counting from a given set of speech files
+
 def main_function():
     merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
 
