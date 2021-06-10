@@ -29,13 +29,14 @@ for i in range(1, n):
 print("\n")
 
 if n < 2:
-    exit("\nPlease include your audio clips in a directory, and ...\n" + "pass the pass the complete path of that directory as command line argument")
+    exit(
+        "\nPlease include the recorded conversation clips in a directory and\n" + "pass the complete path of that directory as command line argument")
 
 # Move the control to Current Working Directory
 # path = "C:/Users/mtc01/My Working Folder/My Python Projects"
 
 path = os.getcwd()
-print(path, '\n')
+print("Path of the python script:", path, '\n')
 os.chdir(path)
 
 # Input Audio Details
@@ -85,6 +86,11 @@ trough_threshold = 0.1
 # Selected MFCC Signal Processing Parameters
 n_fft = frame_length
 n_mfcc = 20
+
+# Used to Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
+if not sys.warnoptions:
+    import warnings
+    warnings.simplefilter("ignore")
 
 
 # Estimate Gender from Pitch feature
