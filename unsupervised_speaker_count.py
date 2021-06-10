@@ -400,7 +400,7 @@ def main_function():
     for i in range(1, len(mfcc_list)):
         diff_count = 0
         for j in range(speaker_count):
-            print("i =", i, "j =", j, "List Size =", len(mfcc_list))
+            print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             pitch = mfcc_list[i][2]
             frame_count = mfcc_list[i][3]
@@ -421,7 +421,6 @@ def main_function():
 
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     mfcc_list[j] = new_item
-                    mfcc_list.pop(i)
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
