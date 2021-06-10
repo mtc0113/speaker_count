@@ -15,7 +15,21 @@ from numpy import linalg as la
 import csv
 import math
 
-# from scipy.spatial import distance
+# Total number of arguments
+n = len(sys.argv)
+print("Total number of arguments passed:", n)
+
+# List the arguments Arguments
+print("\nName of Python script:", sys.argv[0])
+
+print("\nArguments passed:", end=" ")
+for i in range(1, n):
+    print(sys.argv[i], end=" ")
+
+print("\n")
+
+if n < 2:
+    exit("\nPlease include your audio clips in a directory, and ...\n" + "pass the pass the complete path of that directory as command line argument")
 
 # Move the control to Current Working Directory
 # path = "C:/Users/mtc01/My Working Folder/My Python Projects"
@@ -25,7 +39,7 @@ print(path, '\n')
 os.chdir(path)
 
 # Input Audio Details
-speech_folder_name = "C:/Users/mtc01/My Working Folder/My Python Projects/Test Audio Clip"
+speech_folder_name = sys.argv[1]
 
 if os.path.exists(speech_folder_name) == False:
     sys.exit("Folder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
