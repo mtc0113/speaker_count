@@ -25,7 +25,7 @@ print(path, '\n')
 os.chdir(path)
 
 # Input Audio Details
-speech_folder_name = "Test Audio Clip"
+speech_folder_name = "C:/Users/mtc01/My Working Folder/My Python Projects/Test Audio Clip"
 
 if os.path.exists(speech_folder_name) == False:
     sys.exit("Folder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
