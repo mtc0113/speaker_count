@@ -460,4 +460,5 @@ def main_function():
 
 # Call of the main function
 final_speaker_count = main_function()
+print()
 print(final_speaker_count, "number of different speakers detected in the audio clips\n")
