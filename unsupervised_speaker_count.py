@@ -16,65 +16,71 @@ from numpy import linalg as la
 import csv
 import math
 
-# Total number of arguments
-n = len(sys.argv)
-print("Total number of arguments passed:", n)
 
-# List the arguments Arguments
+# Move the control to Current Working Directory
+path = os.getcwd()
+print("\nLocation of the current python script:", path)
+os.chdir(path)
+
+# Find Total number of arguments passed to the script
+n = len(sys.argv)
+print("\nTotal number of arguments passed:", n)
+
+# List the arguments passed
 print("\nName of Python script:", sys.argv[0])
 
 print("\nArguments passed:", end=" ")
 for i in range(1, n):
     print(sys.argv[i], end=" ")
 
-print("\n")
-
 if n < 2:
     exit("\nPlease include recorded clips in a directory and\n" + "pass the directory path as command line argument")
 
-# Move the control to Current Working Directory
-# path = "C:/Users/mtc01/My Working Folder/My Python Projects Data"
-
-path = os.getcwd()
-print("Path of the python script:", path, '\n')
-os.chdir(path)
 
 # Input Audio Details
 speech_folder_name = sys.argv[1]
 
 if os.path.exists(speech_folder_name) is False:
-    sys.exit("Folder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
+    sys.exit("\nFolder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
 
-file_extension = ('.mp3', '.wav')  # tuple of supported audio file extensions
+# tuple of supported audio file extensions
+file_extension = ('.mp3', '.wav')
 
+# Temporary intermediate files
 output_file_extension = ".txt"
-yin_file = speech_folder_name + '/YIN' + output_file_extension
-mfcc_file = speech_folder_name + '/MFCC' + output_file_extension
+yin_file = speech_folder_name + '/temp/YIN' + output_file_extension
+mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
 
-# rev_yin_file = speech_folder_name + '/rev.YIN' + output_file_extension
-rev_mfcc_file = speech_folder_name + '/rev.MFCC' + output_file_extension
+rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 
-merged_mfcc_file = speech_folder_name + '/merged.MFCC' + output_file_extension
+merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extension
 
-# Selected Audio Signal Parameters
+# Assumed Sampling Rate
 sr = 22050
 
-SEGMENT_LENGTH = 3.0  # measured in second
+# Application Parameters: Adopted from crowdpp Android Implementation
+SEGMENT_LENGTH = 3.0        # measured in second
 
-PITCH_MALE_UPPER = 160  # measured in Hertz
-PITCH_FEMALE_LOWER = 190  # measured in Hertz
-PITCH_HUMAN_UPPER = 450  # measured in Hertz
-PITCH_HUMAN_LOWER = 50  # measured in Hertz
+PITCH_MALE_UPPER = 160      # measured in Hertz
+PITCH_FEMALE_LOWER = 190    # measured in Hertz
+PITCH_HUMAN_UPPER = 450     # measured in Hertz
+PITCH_HUMAN_LOWER = 50      # measured in Hertz
 
-PITCH_RATE_LOWER = 0.05  # Adopted from crowdpp Android Implementation
-PITCH_MU_LOWER = 50
-PITCH_MU_UPPER = 450
-PITCH_SIGMA_UPPER = 100
+PITCH_RATE_LOWER = 0.05
+PITCH_MU_LOWER = 50         # measured in Hertz
+PITCH_MU_UPPER = 450        # measured in Hertz
+PITCH_SIGMA_UPPER = 100     # measured in Hertz
 
-MFCC_DIST_SAME_UN = 15.6  # Adopted from crowdpp Android Implementation
-MFCC_DIST_DIFF_UN = 21.6  # Adopted from crowdpp Android Implementation
+# Default Tuning Parameters: Adopted from crowdpp Android Implementation
+MFCC_DIST_SAME_UN = 15.6
+MFCC_DIST_DIFF_UN = 21.6
 
-# Selected YIN Signal Processing Parameters
+# Set Tuning Parameters using command line arguments to the script
+if n > 3:
+    MFCC_DIST_SAME_UN = sys.argv[2]
+    MFCC_DIST_DIFF_UN = sys.argv[3]
+
+# YIN Pitch Detection Method Parameters
 frame_length = 1024
 hop_length = frame_length // 8
 win_length = frame_length // 8
@@ -83,18 +89,17 @@ fmin = 10
 fmax = 2093
 trough_threshold = 0.1
 
-# Selected MFCC Signal Processing Parameters
+# MFCC Signal Processing Parameters
 n_fft = frame_length
 n_mfcc = 20
 
-# Used to Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
+# Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
 if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
 
 
 # Estimate Gender from Pitch feature
-
 def estimate_gender(pitch):
     gender = -1  # Gender Uncertain
     if pitch <= PITCH_MALE_UPPER:
@@ -105,7 +110,6 @@ def estimate_gender(pitch):
 
 
 # Decide on Gender Similarity based on Pitch feature
-
 def gender_decision(pitch_a, pitch_b):
     gender_a = estimate_gender(pitch_a)
     gender_b = estimate_gender(pitch_b)
@@ -119,7 +123,7 @@ def gender_decision(pitch_a, pitch_b):
         return -1  # leave the job to MFCC
 
 
-# Function to Derive YIN and MFCC features for the Input Clip
+# Function to Derive YIN and MFCC features of a Segment
 def derive_features(file_count, filename, segment_length):
     YIN = []
     MFCC = []
@@ -172,8 +176,6 @@ def derive_features(file_count, filename, segment_length):
 
 
 # Function to write the feature vectors to feature file
-
-
 def file_write(feature_List, output_file):
     with open(output_file, 'w') as f:
         original_stdout = sys.stdout
@@ -187,7 +189,6 @@ def file_write(feature_List, output_file):
 
 
 # Function to Generate Feature Vectors for the Speech Audio Clips in the Input Directory
-
 def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
     YIN_List = []
     MFCC_List = []
@@ -218,7 +219,6 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
 
 
 # Function to Remove Non-voiced Segments
-
 def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
     with open(in_file1, "r") as f:
         csv_reader = csv.reader(f, delimiter=',')
@@ -285,7 +285,6 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
 # Order of MFCC representation is (num_frames,n_fft)
 # MFCC is represented as an 1-D array obtained by appending
 # 'num_frame' rows of size 'n_fft' placed side-by-side
-
 def get_column_mean(mfcc):
     column_mean_arr = []
 
@@ -302,7 +301,6 @@ def get_column_mean(mfcc):
 
 
 # Function to find Distance (in degrees) between input MFCC matrices
-
 def get_Distance(mfcc1, mfcc2):
     # Get aveage MFCC vector for the segment pair using column mean of the input matrices
     mfcc_a = get_column_mean(mfcc1)
@@ -319,7 +317,7 @@ def get_Distance(mfcc1, mfcc2):
 
     return degree_distance
 
-
+# Function to merge matching neighbor segments
 def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptral_file):
     segment_frame_count = Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file)
 
@@ -357,7 +355,6 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
     f.close()
 
     # iteratively pre-cluster the neighbor segments until no merging happens
-
     while True:
         last_size = len(MFCC_List)
         p = 0
@@ -382,7 +379,6 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
             decision = gender_decision(segment_pitch_p, segment_pitch_q)
 
             # print("p:", p, "q:", q,"Cosine Distance:", distance)
-
             if distance <= MFCC_DIST_SAME_UN and decision == 1:
                 revised_audio_num_p = audio_num_p
                 revised_segment_num_p = segment_num_p
@@ -408,10 +404,8 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
-
 def main_function():
     mfcc_list = merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
-    # segment_count = len(mfcc_list)
 
     # admit the first segment as speaker 1
     speaker_count = 1
@@ -459,6 +453,5 @@ def main_function():
 
 
 # Call of the main function
-
 final_speaker_count = main_function()
 print(final_speaker_count, "number of different speakers detected in the audio clips\n")
