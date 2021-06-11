@@ -47,6 +47,12 @@ if os.path.exists(speech_folder_name) is False:
 file_extension = ('.mp3', '.wav')
 
 # Temporary intermediate files
+temporary_directory = "temp"
+temporary_directory_path = os.path.join(speech_folder_name, temporary_directory)
+
+if os.path.exists(temporary_directory_path) is False:
+    os.makedirs(temporary_directory_path)
+
 output_file_extension = ".txt"
 yin_file = speech_folder_name + '/temp/YIN' + output_file_extension
 mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
@@ -77,8 +83,8 @@ MFCC_DIST_DIFF_UN = 21.6
 
 # Set Tuning Parameters using command line arguments to the script
 if n > 3:
-    MFCC_DIST_SAME_UN = sys.argv[2]
-    MFCC_DIST_DIFF_UN = sys.argv[3]
+    MFCC_DIST_SAME_UN = float(sys.argv[2])
+    MFCC_DIST_DIFF_UN = float(sys.argv[3])
 
 # YIN Pitch Detection Method Parameters
 frame_length = 1024
