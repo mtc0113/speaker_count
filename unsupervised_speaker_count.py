@@ -29,11 +29,10 @@ for i in range(1, n):
 print("\n")
 
 if n < 2:
-    exit(
-        "\nPlease include the recorded conversation clips in a directory and\n" + "pass the complete path of that directory as command line argument")
+    exit("\nPlease include recorded clips in a directory and\n" + "pass the directory path as command line argument")
 
 # Move the control to Current Working Directory
-# path = "C:/Users/mtc01/My Working Folder/My Python Projects"
+# path = "C:/Users/mtc01/My Working Folder/My Python Projects Data"
 
 path = os.getcwd()
 print("Path of the python script:", path, '\n')
@@ -42,7 +41,7 @@ os.chdir(path)
 # Input Audio Details
 speech_folder_name = sys.argv[1]
 
-if os.path.exists(speech_folder_name) == False:
+if os.path.exists(speech_folder_name) is False:
     sys.exit("Folder \"" + speech_folder_name + "\" not found. Check the Speech folder path")
 
 file_extension = ('.mp3', '.wav')  # tuple of supported audio file extensions
@@ -81,7 +80,7 @@ win_length = frame_length // 8
 
 fmin = 10
 fmax = 2093
-trough_threshold = 0.1
+trough_threshold = 0.15
 
 # Selected MFCC Signal Processing Parameters
 n_fft = frame_length
@@ -123,6 +122,7 @@ def gender_decision(pitch_a, pitch_b):
 def derive_features(file_count, filename, segment_length):
     YIN = []
     MFCC = []
+    frame_count = 0
 
     current_speech, sr = librosa.load(filename)
     duration = librosa.get_duration(y=current_speech, sr=sr)
@@ -167,10 +167,11 @@ def derive_features(file_count, filename, segment_length):
         start_segment = end_segment
         end_segment = start_segment + segment_length
 
-    return YIN, MFCC, frame_count
+    return frame_count, YIN, MFCC
 
 
 # Function to write the feature vectors to feature file
+
 
 def file_write(feature_List, output_file):
     with open(output_file, 'w') as f:
@@ -189,8 +190,9 @@ def file_write(feature_List, output_file):
 def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
     YIN_List = []
     MFCC_List = []
+    frame_count = 0
 
-    if os.listdir(folder_name) == []:
+    if not os.listdir(folder_name):
         sys.exit("No file in folder \"" + speech_folder_name + "\"")
 
     file_count = 0
@@ -199,7 +201,7 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
         if file.endswith(extension):
             rel_file_path = folder_name + f"/{file}"
             file_count += 1
-            this_YIN_List, this_MFCC_List, frame_count = derive_features(file_count, rel_file_path, SEGMENT_LENGTH)
+            frame_count, this_YIN_List, this_MFCC_List = derive_features(file_count, rel_file_path, SEGMENT_LENGTH)
             YIN_List = YIN_List + this_YIN_List
             MFCC_List = MFCC_List + this_MFCC_List
 
@@ -239,7 +241,8 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
             pitch_mu = statistics.mean(temp_pitch)
             pitch_sigma = statistics.stdev(temp_pitch)
 
-            if pitch_rate >= PITCH_RATE_LOWER and pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
+            if pitch_rate >= PITCH_RATE_LOWER and \
+                    pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
                 revised_YIN_List.append((curr_audio_num, curr_segment_num, pitch_mu))
                 line_count += 1
 
@@ -262,10 +265,10 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
             segment_mfcc_str = np.array(row[2:])
             segment_mfcc = segment_mfcc_str.astype(float)
 
-            if revised_YIN_List[mfcc_line_count][0] == curr_audio_num and revised_YIN_List[mfcc_line_count][
-                1] == curr_segment_num:
-                revised_MFCC_List.append((curr_audio_num, curr_segment_num, float(revised_YIN_List[mfcc_line_count][2]),
-                                          frame_count) + tuple(segment_mfcc))
+            if revised_YIN_List[mfcc_line_count][0] == curr_audio_num and \
+                    revised_YIN_List[mfcc_line_count][1] == curr_segment_num:
+                revised_MFCC_List.append((curr_audio_num, curr_segment_num, float(
+                                            revised_YIN_List[mfcc_line_count][2]), frame_count) + tuple(segment_mfcc))
                 mfcc_line_count += 1
 
             if mfcc_line_count == line_count:
@@ -407,7 +410,7 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
 
 def main_function():
     mfcc_list = merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
-    segment_count = len(mfcc_list)
+    # segment_count = len(mfcc_list)
 
     # admit the first segment as speaker 1
     speaker_count = 1
