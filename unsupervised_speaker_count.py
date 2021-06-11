@@ -80,7 +80,7 @@ win_length = frame_length // 8
 
 fmin = 10
 fmax = 2093
-trough_threshold = 0.15
+trough_threshold = 0.1
 
 # Selected MFCC Signal Processing Parameters
 n_fft = frame_length
