@@ -15,6 +15,7 @@ import statistics
 from numpy import linalg as la
 import csv
 import math
+from time import process_time
 
 
 # Move the control to Current Working Directory
@@ -253,6 +254,8 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
                 revised_YIN_List.append((curr_audio_num, curr_segment_num, pitch_mu))
                 line_count += 1
 
+
+
         if line_count == 0:
             return line_count
 
@@ -459,6 +462,15 @@ def main_function():
 
 
 # Call of the main function
-final_speaker_count = main_function()
-print()
-print(final_speaker_count, "number of different speakers detected in the audio clips\n")
+def main():
+    start = process_time()
+    final_speaker_count = main_function()
+    end = process_time()
+    print()
+    print(final_speaker_count, "number of different speakers detected in the audio clips\n")
+    print("Time elapsed during the calculation:", end - start, "seconds")
+
+
+# Using the special variable __name__
+if __name__=="__main__":
+    main()
