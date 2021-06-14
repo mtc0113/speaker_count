@@ -244,10 +244,16 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
                 if float(curr_pitch) >= PITCH_HUMAN_LOWER and float(curr_pitch) <= PITCH_HUMAN_UPPER:
                     c += 1
                     temp_pitch.append(float(curr_pitch))
+            if len(temp_pitch) != 0:
+                pitch_rate = c / len(segment_pitch)
+                pitch_mu = statistics.mean(temp_pitch)
+                pitch_sigma = statistics.stdev(temp_pitch)
+            else:
+                pitch_rate = 0.0
+                pitch_mu = 0.0
+                pitch_sigma = 0.0
+                print("\nNo voiced frame in Audio:", curr_audio_num, "Segment:", curr_segment_num)
 
-            pitch_rate = c / len(segment_pitch)
-            pitch_mu = statistics.mean(temp_pitch)
-            pitch_sigma = statistics.stdev(temp_pitch)
 
             if pitch_rate >= PITCH_RATE_LOWER and \
                     pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
