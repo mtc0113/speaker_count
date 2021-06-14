@@ -19,19 +19,20 @@ from time import process_time
 
 # Move the control to Current Working Directory
 path = os.getcwd()
-print("\nLocation of the current python script:", path)
+# print("\nLocation of the current python script:", path)
 os.chdir(path)
 
 # Find Total number of arguments passed to the script
 n = len(sys.argv)
-print("\nTotal number of arguments passed:", n)
+# print("\nTotal number of arguments passed:", n)
 
 # List the arguments passed
-print("\nName of Python script:", sys.argv[0])
+# print("\nName of Python script:", sys.argv[0])
 
-print("\nArguments passed:", end=" ")
-for i in range(1, n):
-    print(sys.argv[i], end=" ")
+# print("\nArguments passed:", end=" ")
+# for i in range(1, n):
+#     print(sys.argv[i], end=" ")
+# print()
 
 if n < 2:
     exit("\nPlease include recorded clips in a directory and\n" + "pass the directory path as command line argument")
@@ -262,11 +263,12 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
                 pitch_rate = c / len(segment_pitch)
                 pitch_mu = statistics.mean(temp_pitch)
                 pitch_sigma = statistics.stdev(temp_pitch)
+                print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Voiced")
             else:
                 pitch_rate = 0.0
                 pitch_mu = 0.0
                 pitch_sigma = 0.0
-                print("\nNo voiced frame in Audio:", curr_audio_num, "Segment:", curr_segment_num)
+                print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Non-voiced")
 
             if pitch_rate >= PITCH_RATE_LOWER and \
                     pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
@@ -352,8 +354,9 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
     voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
 
     if voice_count == 0:
-        sys.exit("No Voiced Segment in Folder" + speech_folder_name)
+        sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
     else:
+        print()
         print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
 
     MFCC_List = []
@@ -377,8 +380,8 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
 
             # print(len(segment_mfcc))
 
-        if mfcc_line_count == voice_count:
-            print("File Copy OK\n")
+        # if mfcc_line_count == voice_count:
+        #     print("File Copy OK\n")
 
     f.close()
 
@@ -427,7 +430,7 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
             break
 
     file_write(MFCC_List, merged_ceptral_file)
-    print("Last Size:", last_size, "\n")
+    print("Size of Segment List after merging Matching Segments:", last_size, "\n")
     return MFCC_List
 
 
@@ -443,6 +446,7 @@ def main_function():
     new_frame_count = mfcc_list[0][3]
     new_mfcc = mfcc_list[0][4:]
 
+    # print("\n")
     for i in range(1, len(mfcc_list)):
         diff_count = 0
         for j in range(speaker_count):
@@ -486,8 +490,8 @@ def main():
     final_speaker_count = main_function()
     end = process_time()
     print()
-    print(final_speaker_count, "number of different speakers detected in the audio clips\n")
-    print("Time elapsed during the calculation:", end - start, "seconds")
+    print(final_speaker_count, "number of different speakers detected in the audio clips")
+    print("\nTime elapsed during the calculation:", end - start, "seconds")
 
 
 # Using the special variable __name__
