@@ -206,7 +206,7 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
         sys.exit("No file in folder \"" + speech_folder_name + "\"")
 
     file_count = 0
-    speech_duration = 0.0
+    tot_segments = 0
     segment_count = 0
     frame_count = 0
     for file in os.listdir(folder_name):
@@ -223,6 +223,7 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
                 derive_features(file_count, rel_file_path, SEGMENT_LENGTH)
             YIN_List = YIN_List + this_YIN_List
             MFCC_List = MFCC_List + this_MFCC_List
+            tot_segments += segment_count
 
             file_metadata = [file_count, file, speech_duration, segment_count] + items
             file_metadata_List.append(file_metadata)
@@ -236,7 +237,7 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
 
     print(file_count, "supported Audio Files in folder \"" + speech_folder_name + "\"", "\n")
 
-    return frame_count
+    return tot_segments, frame_count
 
 
 # Function to Remove Non-voiced Segments
@@ -262,12 +263,12 @@ def Remove_Non_Voiced(in_file1, in_file2, frame_count, out_file):
                 pitch_rate = c / len(segment_pitch)
                 pitch_mu = statistics.mean(temp_pitch)
                 pitch_sigma = statistics.stdev(temp_pitch)
-                print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Voiced")
+                # print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Voiced")
             else:
                 pitch_rate = 0.0
                 pitch_mu = 0.0
                 pitch_sigma = 0.0
-                print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Non-voiced")
+                # print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Non-voiced")
 
             if pitch_rate >= PITCH_RATE_LOWER and \
                     pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
@@ -413,7 +414,7 @@ def merge_segments(revised_ceptral_file, merged_ceptral_file):
             break
 
     file_write(MFCC_List, merged_ceptral_file)
-    print("Size of Segment List after merging Matching Segments:", last_size, "\n")
+    # print("Size of Segment List after merging Matching Segments:", last_size, "\n")
     return MFCC_List
 
 
@@ -422,23 +423,23 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
     # Split each audio file (having supported extension) in speech folder into segments (of equal duration)
     # Generate Pitch and MFCC features for each segment
     # and save these feature vectors/matrices in corresponding feature files for further processing
-    segment_frame_count = \
+    num_segments, segment_frame_count = \
         Generate_Feature_Files(speech_folder, audio_extension, pitch_file, cept_file, meta_file)
 
     # Remove non-voiced audio segments from the list using generated Pitch and MFCC features
-    voice_count = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
+    num_voiced_segments = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
 
-    if voice_count == 0:
-        sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
+    if num_voiced_segments == 0:
+        speaker_count = 0
+        return speaker_count, num_segments, num_voiced_segments
     else:
-        print()
-        print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
+        # admit the first segment as speaker 1
+        speaker_count = 1
+    #     print(num_voiced_segments, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
 
     # Iteratively merge matching neighboring voice segments in the list
     mfcc_list = merge_segments(rev_cept_file, merged_cept_file)
 
-    # admit the first segment as speaker 1
-    speaker_count = 1
     new_audio_num = mfcc_list[0][0]
     new_segment_num = mfcc_list[0][1]
     new_pitch = mfcc_list[0][2]
@@ -449,7 +450,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
     for i in range(1, len(mfcc_list)):
         diff_count = 0
         for j in range(speaker_count):
-            print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
+            # print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             pitch = mfcc_list[i][2]
             frame_count = mfcc_list[i][3]
@@ -480,18 +481,21 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
             new_frame_count = mfcc_list[i][3]
             new_mfcc = mfcc_list[i][4:]
 
-    return speaker_count
+    return speaker_count, num_segments, num_voiced_segments, len(mfcc_list)
 
 
 # Call the main function
 def main():
     start = process_time()
-    final_speaker_count = count_speaker(
+    final_speaker_count, total_segments, total_voiced_segments, total_merged_segments = count_speaker(
         speech_folder_name, file_extension, yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file, metadata_file)
     end = process_time()
     print()
-    print(final_speaker_count, "number of different speakers detected in the audio clips")
-    print("\nTime elapsed during the calculation:", end - start, "seconds")
+    print("Total number of segments processed:", total_segments)
+    print("Total number of voiced segments identified:", total_voiced_segments)
+    print("Total number of segments after the merger of neighboring voiced segments:", total_merged_segments)
+    print(final_speaker_count, "number of different speakers identified in all the audio clips of the input folder")
+    print("Time elapsed during the computation:", end - start, "seconds")
 
 
 # Using the special variable __name__
