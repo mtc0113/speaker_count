@@ -241,7 +241,7 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
 
 
 # Function to Remove Non-voiced Segments
-def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
+def Remove_Non_Voiced(in_file1, in_file2, frame_count, out_file):
     with open(in_file1, "r") as f:
         csv_reader = csv.reader(f, delimiter=',')
 
@@ -347,17 +347,17 @@ def get_Distance(mfcc1, mfcc2):
 
 
 # Function to merge matching neighbor segments
-def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptral_file):
-    segment_frame_count = \
-        Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file, metadata_file)
-
-    voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
-
-    if voice_count == 0:
-        sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
-    else:
-        print()
-        print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
+def merge_segments(revised_ceptral_file, merged_ceptral_file):
+    # segment_frame_count = \
+    #     Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file, metadata_file)
+    #
+    # voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
+    #
+    # if voice_count == 0:
+    #     sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
+    # else:
+    #     print()
+    #     print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
 
     MFCC_List = []
 
@@ -435,8 +435,19 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
-def main_function():
-    mfcc_list = merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+def count_speaker(folder_name, extension, pitch_file, ceptral_file, rev_ceptral_file, merged_ceptral_file, meta_file):
+    segment_frame_count = \
+        Generate_Feature_Files(folder_name, extension, pitch_file, ceptral_file, meta_file)
+
+    voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, segment_frame_count, rev_ceptral_file)
+
+    if voice_count == 0:
+        sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
+    else:
+        print()
+        print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
+
+    mfcc_list = merge_segments(rev_ceptral_file, merged_ceptral_file)
 
     # admit the first segment as speaker 1
     speaker_count = 1
@@ -487,7 +498,8 @@ def main_function():
 # Call of the main function
 def main():
     start = process_time()
-    final_speaker_count = main_function()
+    final_speaker_count = count_speaker(
+        speech_folder_name, file_extension, yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file, metadata_file)
     end = process_time()
     print()
     print(final_speaker_count, "number of different speakers detected in the audio clips")
