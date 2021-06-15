@@ -56,7 +56,7 @@ if os.path.exists(temporary_directory_path) is False:
 output_file_extension = ".txt"
 yin_file = speech_folder_name + '/temp/YIN' + output_file_extension
 mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
-metadata_file = speech_folder_name + '/temp/MetaData' + output_file_extension
+# metadata_file = speech_folder_name + '/temp/MetaData' + output_file_extension
 
 rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 
@@ -140,10 +140,8 @@ def derive_features(file_count, filename, segment_length):
     current_speech, sr = librosa.load(filename)
     duration = librosa.get_duration(y=current_speech, sr=sr)
 
-    print('')
-    print("Audio File Name:", filename)
-    print("Audio Clip Duration:", duration)
-    print('')
+    # print("Audio Clip", file_count, ":", filename)
+    # print("Audio Clip Duration:", duration)
 
     start_segment = 0.0
     end_segment = start_segment + segment_length
@@ -197,8 +195,8 @@ def file_write(feature_List, output_file):
 
 
 # Function to Generate Feature Vectors for the Speech Audio Clips in the Input Directory
-def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_info_file):
-    file_metadata_List = []
+def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
+    # file_metadata_List = []
     YIN_List = []
     MFCC_List = []
 
@@ -214,9 +212,9 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
         if file.endswith(extension):
             rel_file_path = folder_name + f"/{file}"
             # extract the name of the file (without file extension)
-            file_name = os.path.splitext(file)[0]
-            # split file_name entries by '_' character
-            items = file_name.split('_')
+            # file_name = os.path.splitext(file)[0]
+            # # split file_name entries by '_' character
+            # items = file_name.split('_')
 
             file_count += 1
             speech_duration, segment_count, frame_count, this_YIN_List, this_MFCC_List = \
@@ -225,17 +223,17 @@ def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_in
             MFCC_List = MFCC_List + this_MFCC_List
             tot_segments += segment_count
 
-            file_metadata = [file_count, file, speech_duration, segment_count] + items
-            file_metadata_List.append(file_metadata)
+            # file_metadata = [file_count, file, speech_duration, segment_count] + items
+            # file_metadata_List.append(file_metadata)
 
     if file_count == 0:
         sys.exit("No files in folder \"" + speech_folder_name + "\" has supported audio file extesion")
 
     file_write(YIN_List, outfile_1)
     file_write(MFCC_List, outfile_2)
-    file_write(file_metadata_List, meta_info_file)
+    # file_write(file_metadata_List, meta_info_file)
 
-    print(file_count, "supported Audio Files in folder \"" + speech_folder_name + "\"", "\n")
+    # print(file_count, "supported Audio Clips in folder \"" + speech_folder_name + "\"", "\n")
 
     return tot_segments, frame_count
 
@@ -419,12 +417,12 @@ def merge_segments(revised_ceptral_file, merged_ceptral_file):
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
-def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cept_file, merged_cept_file, meta_file):
+def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cept_file, merged_cept_file):
     # Split each audio file (having supported extension) in speech folder into segments (of equal duration)
     # Generate Pitch and MFCC features for each segment
     # and save these feature vectors/matrices in corresponding feature files for further processing
     num_segments, segment_frame_count = \
-        Generate_Feature_Files(speech_folder, audio_extension, pitch_file, cept_file, meta_file)
+        Generate_Feature_Files(speech_folder, audio_extension, pitch_file, cept_file)
 
     # Remove non-voiced audio segments from the list using generated Pitch and MFCC features
     num_voiced_segments = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
@@ -488,9 +486,10 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
 def main():
     start = process_time()
     final_speaker_count, total_segments, total_voiced_segments, total_merged_segments = count_speaker(
-        speech_folder_name, file_extension, yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file, metadata_file)
+        speech_folder_name, file_extension, yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
     end = process_time()
-    print()
+
+    # print()
     print("Total number of segments processed:", total_segments)
     print("Total number of voiced segments identified:", total_voiced_segments)
     print("Total number of segments after the merger of neighboring voiced segments:", total_merged_segments)
