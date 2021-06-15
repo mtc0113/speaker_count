@@ -348,17 +348,6 @@ def get_Distance(mfcc1, mfcc2):
 
 # Function to merge matching neighbor segments
 def merge_segments(revised_ceptral_file, merged_ceptral_file):
-    # segment_frame_count = \
-    #     Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file, metadata_file)
-    #
-    # voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
-    #
-    # if voice_count == 0:
-    #     sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
-    # else:
-    #     print()
-    #     print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
-
     MFCC_List = []
 
     with open(revised_ceptral_file, "r") as f:
@@ -377,11 +366,6 @@ def merge_segments(revised_ceptral_file, merged_ceptral_file):
             MFCC_List.append(
                 (curr_audio_num, curr_segment_num, curr_segment_pitch, curr_segment_frame_count) + tuple(segment_mfcc))
             mfcc_line_count += 1
-
-            # print(len(segment_mfcc))
-
-        # if mfcc_line_count == voice_count:
-        #     print("File Copy OK\n")
 
     f.close()
 
@@ -435,11 +419,15 @@ def merge_segments(revised_ceptral_file, merged_ceptral_file):
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
-def count_speaker(folder_name, extension, pitch_file, ceptral_file, rev_ceptral_file, merged_ceptral_file, meta_file):
+def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cept_file, merged_cept_file, meta_file):
+    # Split each audio file (having supported extension) in speech folder into segments (of equal duration)
+    # Generate Pitch and MFCC features for each segment
+    # and save these feature vectors/matrices in corresponding feature files for further processing
     segment_frame_count = \
-        Generate_Feature_Files(folder_name, extension, pitch_file, ceptral_file, meta_file)
+        Generate_Feature_Files(speech_folder, audio_extension, pitch_file, cept_file, meta_file)
 
-    voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, segment_frame_count, rev_ceptral_file)
+    # Remove non-voiced audio segments from the list using generated Pitch and MFCC features
+    voice_count = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
 
     if voice_count == 0:
         sys.exit("\nNo Voiced Segment in Folder" + speech_folder_name)
@@ -447,7 +435,8 @@ def count_speaker(folder_name, extension, pitch_file, ceptral_file, rev_ceptral_
         print()
         print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
 
-    mfcc_list = merge_segments(rev_ceptral_file, merged_ceptral_file)
+    # Iteratively merge matching neighboring voice segments in the list
+    mfcc_list = merge_segments(rev_cept_file, merged_cept_file)
 
     # admit the first segment as speaker 1
     speaker_count = 1
@@ -495,7 +484,7 @@ def count_speaker(folder_name, extension, pitch_file, ceptral_file, rev_ceptral_
     return speaker_count
 
 
-# Call of the main function
+# Call the main function
 def main():
     start = process_time()
     final_speaker_count = count_speaker(
