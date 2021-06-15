@@ -198,8 +198,7 @@ def file_write(feature_List, output_file):
 
 # Function to Generate Feature Vectors for the Speech Audio Clips in the Input Directory
 def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2, meta_info_file):
-    file_metadata_List = [
-        ['Serial', "Audio Name", "Duration", "#Segments", "Owner", "dd", "mm", "yy", "hh", "mm", "ss"], ]
+    file_metadata_List = []
     YIN_List = []
     MFCC_List = []
 
