@@ -63,7 +63,7 @@ rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
-sr = 22050
+# sr = 22050
 
 # Application Parameters: Adopted from crowdpp Android Implementation
 SEGMENT_LENGTH = 3.0  # measured in second
@@ -131,14 +131,18 @@ def gender_decision(pitch_a, pitch_b):
         return -1  # leave the job to MFCC
 
 
+def find_clip_length(path):
+    current_audio, sr = librosa.load(path)
+    audio_duration = librosa.get_duration(y=current_audio, sr=sr)
+    return audio_duration
+
 # Function to Derive YIN and MFCC features of a Segment
 def derive_features(file_count, filename, segment_length):
     YIN = []
     MFCC = []
     frame_count = 0
 
-    current_speech, sr = librosa.load(filename)
-    duration = librosa.get_duration(y=current_speech, sr=sr)
+    duration = find_clip_length(path=filename)
 
     # print("Audio Clip", file_count, ":", filename)
     # print("Audio Clip Duration:", duration)
@@ -148,7 +152,7 @@ def derive_features(file_count, filename, segment_length):
     segment_count = 0
     while end_segment <= duration:
         # Load a speech segment of duration 'segment_length' from the input audio clip
-        speech_segment, sr = librosa.load(filename, sr=sr, mono=True, offset=start_segment, duration=segment_length)
+        speech_segment, sr = librosa.load(filename, mono=True, offset=start_segment, duration=segment_length)
         segment_count += 1
 
         # Calculate average fundamental frequency of the segment
