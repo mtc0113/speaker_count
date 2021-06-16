@@ -77,6 +77,8 @@ def main():
             file_count += 1
             rel_file_path = speech_folder_name + f"/{file}"
 
+            print("File Count:", file_count, "File Name:", file)
+
             # Copy files, but preserve metadata (cp -p src dst)
             shutil.copy2(rel_file_path, temporary_directory_path)
 
@@ -88,10 +90,11 @@ def main():
             # split file_name entries by '_' character
             items = file_name.split('_')
             audio_owner = items[0]
-            audio_record_date = datetime.date(int(items[3]), int(items[1]),int(items[2])).strftime("%d %b %Y")
+            audio_record_date = datetime.date(int(items[3]), int(items[2]),int(items[1])).strftime("%d %b %Y")
             audio_record_time = datetime.time(int(items[4]), int(items[5]),int(items[6])).strftime("%H:%M:%S")
 
             speech_duration = usc.find_clip_length(path=revised_file_path)
+            print("Audio Length:", speech_duration)
 
             start = process_time()
             final_speaker_count, total_segments, total_voiced_segments, total_merged_segments = usc.count_speaker(

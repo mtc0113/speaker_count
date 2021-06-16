@@ -431,9 +431,12 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
     # Remove non-voiced audio segments from the list using generated Pitch and MFCC features
     num_voiced_segments = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
 
+    print("Segment:", num_segments, "Voiced Segments:", num_voiced_segments)
+
     if num_voiced_segments == 0:
         speaker_count = 0
-        return speaker_count, num_segments, num_voiced_segments
+        mfcc_list_size = 0
+        return speaker_count, num_segments, num_voiced_segments, mfcc_list_size
     else:
         # admit the first segment as speaker 1
         speaker_count = 1
@@ -441,6 +444,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
 
     # Iteratively merge matching neighboring voice segments in the list
     mfcc_list = merge_segments(rev_cept_file, merged_cept_file)
+    mfcc_list_size = len(mfcc_list)
 
     new_audio_num = mfcc_list[0][0]
     new_segment_num = mfcc_list[0][1]
@@ -449,7 +453,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
     new_mfcc = mfcc_list[0][4:]
 
     # print("\n")
-    for i in range(1, len(mfcc_list)):
+    for i in range(1, mfcc_list_size):
         diff_count = 0
         for j in range(speaker_count):
             # print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
@@ -483,7 +487,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
             new_frame_count = mfcc_list[i][3]
             new_mfcc = mfcc_list[i][4:]
 
-    return speaker_count, num_segments, num_voiced_segments, len(mfcc_list)
+    return speaker_count, num_segments, num_voiced_segments, mfcc_list_size
 
 
 # Call the main function
