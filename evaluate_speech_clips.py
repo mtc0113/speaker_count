@@ -116,43 +116,6 @@ def main():
 
     # Generate the metadata file
     usc.file_write(file_metadata_List, metadata_file)
-    print(file_metadata_List)
-
-    serial = []
-    audio_name = []
-    clip_length = []
-    recorder = []
-    record_date = []
-    record_time = []
-    num_segments = []
-    num_voiced = []
-    num_merged = []
-    speaker_count = []
-    compute_time = []
-    for t in file_metadata_List:
-        serial.append(t[0])
-        audio_name.append(t[1])
-        clip_length.append(t[2])
-        recorder.append(t[3])
-        record_date.append(t[4])
-        record_time.append(t[5])
-        num_segments.append(t[6])
-        num_voiced.append(t[7])
-        num_merged.append(t[8])
-        speaker_count.append(t[9])
-        compute_time.append(t[10])
-
-    fig = plt.figure(figsize=(10, 5))
-
-    # creating the bar plot
-    plt.bar(serial[1:], clip_length[1:], color='maroon',
-            width=0.4)
-
-    plt.xlabel(serial[0])
-    plt.ylabel(clip_length[0])
-    plt.title("Test Plot")
-    plt.show()
-
 
 # Using the special variable __name__
 if __name__ == "__main__":
