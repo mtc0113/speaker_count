@@ -12,8 +12,10 @@ import sys
 import unsupervised_speaker_count as usc
 import shutil
 from time import process_time
+from time import sleep
 import datetime
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # Move the control to Current Working Directory
@@ -45,8 +47,8 @@ if os.path.exists(temporary_directory_path) is False:
     os.makedirs(temporary_directory_path)
 
 output_file_extension = ".txt"
-meta_file_extension = ".csv"
-metadata_file = speech_folder_name + '/temp/MetaData' + meta_file_extension
+# meta_file_extension = ".csv"
+metadata_file = speech_folder_name + '/temp/MetaData' + output_file_extension
 
 yin_file = speech_folder_name + '/temp/YIN' + output_file_extension
 mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
@@ -66,8 +68,8 @@ def main():
         sys.exit("No file in folder \"" + speech_folder_name + "\"")
 
     file_count = 0
-    file_metadata_List = [['Serial', "Audio File Name", "Clip Length", "Speech Recorder", "Record Date", "Record Time",
-                           "#Segments", "#Voiced", "#Merged", "#Speaker", "#Computation Time"], ]
+    file_metadata_List = [('Serial', "Audio File Name", "Clip Length", "Speech Recorder", "Recording Date",
+            "Recording Time", "#Segments", "#Voiced Segments", "#Merged Segments", "#Speakers", "Computation Time"),]
 
     for file in os.listdir(speech_folder_name):
         # Check the extension of the file
@@ -86,7 +88,7 @@ def main():
             # split file_name entries by '_' character
             items = file_name.split('_')
             audio_owner = items[0]
-            audio_record_date = datetime.date(int(items[3]), int(items[1]),int(items[2])).strftime("%d %b, %Y")
+            audio_record_date = datetime.date(int(items[3]), int(items[1]),int(items[2])).strftime("%d %b %Y")
             audio_record_time = datetime.time(int(items[4]), int(items[5]),int(items[6])).strftime("%H:%M:%S")
 
             speech_duration = usc.find_clip_length(path=revised_file_path)
@@ -97,8 +99,8 @@ def main():
             end = process_time()
             computation_time = end - start
 
-            file_metadata = [file_count, file, speech_duration, audio_owner, audio_record_date, audio_record_time] + \
-                [total_segments, total_voiced_segments, total_merged_segments, final_speaker_count, computation_time]
+            file_metadata = (file_count, file, speech_duration, audio_owner, audio_record_date, audio_record_time) + \
+                (total_segments, total_voiced_segments, total_merged_segments, final_speaker_count, computation_time)
             file_metadata_List.append(file_metadata)
 
             # remove the temporary file
@@ -110,9 +112,46 @@ def main():
     filelist = glob.glob(os.path.join(temporary_directory_path2, "*"))
     for f in filelist:
         os.remove(f)
+    sleep(1.0)
 
     # Generate the metadata file
     usc.file_write(file_metadata_List, metadata_file)
+    print(file_metadata_List)
+
+    serial = []
+    audio_name = []
+    clip_length = []
+    recorder = []
+    record_date = []
+    record_time = []
+    num_segments = []
+    num_voiced = []
+    num_merged = []
+    speaker_count = []
+    compute_time = []
+    for t in file_metadata_List:
+        serial.append(t[0])
+        audio_name.append(t[1])
+        clip_length.append(t[2])
+        recorder.append(t[3])
+        record_date.append(t[4])
+        record_time.append(t[5])
+        num_segments.append(t[6])
+        num_voiced.append(t[7])
+        num_merged.append(t[8])
+        speaker_count.append(t[9])
+        compute_time.append(t[10])
+
+    fig = plt.figure(figsize=(10, 5))
+
+    # creating the bar plot
+    plt.bar(serial[1:], clip_length[1:], color='maroon',
+            width=0.4)
+
+    plt.xlabel(serial[0])
+    plt.ylabel(clip_length[0])
+    plt.title("Test Plot")
+    plt.show()
 
 
 # Using the special variable __name__
