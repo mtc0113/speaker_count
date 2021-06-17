@@ -15,28 +15,27 @@ import statistics
 from numpy import linalg as la
 import csv
 import math
-import time
-
+from time import process_time
 
 # Move the control to Current Working Directory
 path = os.getcwd()
-print("\nLocation of the current python script:", path)
+# print("\nLocation of the current python script:", path)
 os.chdir(path)
 
 # Find Total number of arguments passed to the script
 n = len(sys.argv)
-print("\nTotal number of arguments passed:", n)
+# print("\nTotal number of arguments passed:", n)
 
 # List the arguments passed
-print("\nName of Python script:", sys.argv[0])
+# print("\nName of Python script:", sys.argv[0])
 
-print("\nArguments passed:", end=" ")
-for i in range(1, n):
-    print(sys.argv[i], end=" ")
+# print("\nArguments passed:", end=" ")
+# for i in range(1, n):
+#     print(sys.argv[i], end=" ")
+# print()
 
 if n < 2:
     exit("\nPlease include recorded clips in a directory and\n" + "pass the directory path as command line argument")
-
 
 # Input Audio Details
 speech_folder_name = sys.argv[1]
@@ -57,26 +56,27 @@ if os.path.exists(temporary_directory_path) is False:
 output_file_extension = ".txt"
 yin_file = speech_folder_name + '/temp/YIN' + output_file_extension
 mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
+# metadata_file = speech_folder_name + '/temp/MetaData' + output_file_extension
 
 rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 
 merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
-sr = 22050
+# sr = 22050
 
 # Application Parameters: Adopted from crowdpp Android Implementation
-SEGMENT_LENGTH = 3.0        # measured in second
+SEGMENT_LENGTH = 3.0  # measured in second
 
-PITCH_MALE_UPPER = 160      # measured in Hertz
-PITCH_FEMALE_LOWER = 190    # measured in Hertz
-PITCH_HUMAN_UPPER = 450     # measured in Hertz
-PITCH_HUMAN_LOWER = 50      # measured in Hertz
+PITCH_MALE_UPPER = 160  # measured in Hertz
+PITCH_FEMALE_LOWER = 190  # measured in Hertz
+PITCH_HUMAN_UPPER = 450  # measured in Hertz
+PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
 PITCH_RATE_LOWER = 0.05
-PITCH_MU_LOWER = 50         # measured in Hertz
-PITCH_MU_UPPER = 450        # measured in Hertz
-PITCH_SIGMA_UPPER = 100     # measured in Hertz
+PITCH_MU_LOWER = 50  # measured in Hertz
+PITCH_MU_UPPER = 450  # measured in Hertz
+PITCH_SIGMA_UPPER = 100  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = 15.6
@@ -103,6 +103,7 @@ n_mfcc = 20
 # Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
 if not sys.warnoptions:
     import warnings
+
     warnings.simplefilter("ignore")
 
 
@@ -130,26 +131,28 @@ def gender_decision(pitch_a, pitch_b):
         return -1  # leave the job to MFCC
 
 
+def find_clip_length(path):
+    current_audio, sr = librosa.load(path)
+    audio_duration = librosa.get_duration(y=current_audio, sr=sr)
+    return audio_duration
+
 # Function to Derive YIN and MFCC features of a Segment
 def derive_features(file_count, filename, segment_length):
     YIN = []
     MFCC = []
     frame_count = 0
 
-    current_speech, sr = librosa.load(filename)
-    duration = librosa.get_duration(y=current_speech, sr=sr)
+    duration = find_clip_length(path=filename)
 
-    print('')
-    print("Audio File Name:", filename)
-    print("Audio Clip Duration:", duration)
-    print('')
+    # print("Audio Clip", file_count, ":", filename)
+    # print("Audio Clip Duration:", duration)
 
     start_segment = 0.0
     end_segment = start_segment + segment_length
     segment_count = 0
     while end_segment <= duration:
         # Load a speech segment of duration 'segment_length' from the input audio clip
-        speech_segment, sr = librosa.load(filename, sr=sr, mono=True, offset=start_segment, duration=segment_length)
+        speech_segment, sr = librosa.load(filename, mono=True, offset=start_segment, duration=segment_length)
         segment_count += 1
 
         # Calculate average fundamental frequency of the segment
@@ -179,7 +182,7 @@ def derive_features(file_count, filename, segment_length):
         start_segment = end_segment
         end_segment = start_segment + segment_length
 
-    return frame_count, YIN, MFCC
+    return duration, segment_count, frame_count, YIN, MFCC
 
 
 # Function to write the feature vectors to feature file
@@ -197,36 +200,50 @@ def file_write(feature_List, output_file):
 
 # Function to Generate Feature Vectors for the Speech Audio Clips in the Input Directory
 def Generate_Feature_Files(folder_name, extension, outfile_1, outfile_2):
+    # file_metadata_List = []
     YIN_List = []
     MFCC_List = []
-    frame_count = 0
 
     if not os.listdir(folder_name):
         sys.exit("No file in folder \"" + speech_folder_name + "\"")
 
     file_count = 0
+    tot_segments = 0
+    segment_count = 0
+    frame_count = 0
     for file in os.listdir(folder_name):
         # Check the extension of the file
         if file.endswith(extension):
             rel_file_path = folder_name + f"/{file}"
+            # extract the name of the file (without file extension)
+            # file_name = os.path.splitext(file)[0]
+            # # split file_name entries by '_' character
+            # items = file_name.split('_')
+
             file_count += 1
-            frame_count, this_YIN_List, this_MFCC_List = derive_features(file_count, rel_file_path, SEGMENT_LENGTH)
+            speech_duration, segment_count, frame_count, this_YIN_List, this_MFCC_List = \
+                derive_features(file_count, rel_file_path, SEGMENT_LENGTH)
             YIN_List = YIN_List + this_YIN_List
             MFCC_List = MFCC_List + this_MFCC_List
+            tot_segments += segment_count
+
+            # file_metadata = [file_count, file, speech_duration, segment_count] + items
+            # file_metadata_List.append(file_metadata)
 
     if file_count == 0:
         sys.exit("No files in folder \"" + speech_folder_name + "\" has supported audio file extesion")
 
     file_write(YIN_List, outfile_1)
     file_write(MFCC_List, outfile_2)
+    # file_write(file_metadata_List, meta_info_file)
 
-    print(file_count, "supported Audio Files in folder \"" + speech_folder_name + "\"", "\n")
+    # print(file_count, "supported Audio Clips in folder \"" + speech_folder_name + "\"", "\n")
 
-    return frame_count
+    return tot_segments, frame_count
 
 
 # Function to Remove Non-voiced Segments
-def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
+def Remove_Non_Voiced(in_file1, in_file2, frame_count, out_file):
     with open(in_file1, "r") as f:
         csv_reader = csv.reader(f, delimiter=',')
 
@@ -248,12 +265,12 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
                 pitch_rate = c / len(segment_pitch)
                 pitch_mu = statistics.mean(temp_pitch)
                 pitch_sigma = statistics.stdev(temp_pitch)
+                # print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Voiced")
             else:
                 pitch_rate = 0.0
                 pitch_mu = 0.0
                 pitch_sigma = 0.0
-                print("\nNo voiced frame in Audio:", curr_audio_num, "Segment:", curr_segment_num)
-
+                # print("Audio Num:", curr_audio_num, "Segment Num:", curr_segment_num, "Status: Non-voiced")
 
             if pitch_rate >= PITCH_RATE_LOWER and \
                     pitch_mu >= PITCH_MU_LOWER and pitch_mu <= PITCH_MU_UPPER and pitch_sigma <= PITCH_SIGMA_UPPER:
@@ -282,7 +299,7 @@ def Remove_Non_Voiced(in_file1, in_file2, out_file, frame_count):
             if revised_YIN_List[mfcc_line_count][0] == curr_audio_num and \
                     revised_YIN_List[mfcc_line_count][1] == curr_segment_num:
                 revised_MFCC_List.append((curr_audio_num, curr_segment_num, float(
-                                            revised_YIN_List[mfcc_line_count][2]), frame_count) + tuple(segment_mfcc))
+                    revised_YIN_List[mfcc_line_count][2]), frame_count) + tuple(segment_mfcc))
                 mfcc_line_count += 1
 
             if mfcc_line_count == line_count:
@@ -330,17 +347,9 @@ def get_Distance(mfcc1, mfcc2):
 
     return degree_distance
 
+
 # Function to merge matching neighbor segments
-def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptral_file):
-    segment_frame_count = Generate_Feature_Files(speech_folder_name, file_extension, pitch_file, ceptral_file)
-
-    voice_count = Remove_Non_Voiced(pitch_file, ceptral_file, revised_ceptral_file, segment_frame_count)
-
-    if voice_count == 0:
-        sys.exit("No Voiced Segment in Folder" + speech_folder_name)
-    else:
-        print(voice_count, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
-
+def merge_segments(revised_ceptral_file, merged_ceptral_file):
     MFCC_List = []
 
     with open(revised_ceptral_file, "r") as f:
@@ -359,11 +368,6 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
             MFCC_List.append(
                 (curr_audio_num, curr_segment_num, curr_segment_pitch, curr_segment_frame_count) + tuple(segment_mfcc))
             mfcc_line_count += 1
-
-            # print(len(segment_mfcc))
-
-        if mfcc_line_count == voice_count:
-            print("File Copy OK\n")
 
     f.close()
 
@@ -412,26 +416,47 @@ def merge_segments(pitch_file, ceptral_file, revised_ceptral_file, merged_ceptra
             break
 
     file_write(MFCC_List, merged_ceptral_file)
-    print("Last Size:", last_size, "\n")
+    # print("Size of Segment List after merging Matching Segments:", last_size, "\n")
     return MFCC_List
 
 
 # The main function for Unsupervised Speaker Counting from a given set of speech files
-def main_function():
-    mfcc_list = merge_segments(yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cept_file, merged_cept_file):
+    # Split each audio file (having supported extension) in speech folder into segments (of equal duration)
+    # Generate Pitch and MFCC features for each segment
+    # and save these feature vectors/matrices in corresponding feature files for further processing
+    num_segments, segment_frame_count = \
+        Generate_Feature_Files(speech_folder, audio_extension, pitch_file, cept_file)
 
-    # admit the first segment as speaker 1
-    speaker_count = 1
+    # Remove non-voiced audio segments from the list using generated Pitch and MFCC features
+    num_voiced_segments = Remove_Non_Voiced(pitch_file, cept_file, segment_frame_count, rev_cept_file)
+
+    print("Segment:", num_segments, "Voiced Segments:", num_voiced_segments)
+
+    if num_voiced_segments == 0:
+        speaker_count = 0
+        mfcc_list_size = 0
+        return speaker_count, num_segments, num_voiced_segments, mfcc_list_size
+    else:
+        # admit the first segment as speaker 1
+        speaker_count = 1
+    #     print(num_voiced_segments, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
+
+    # Iteratively merge matching neighboring voice segments in the list
+    mfcc_list = merge_segments(rev_cept_file, merged_cept_file)
+    mfcc_list_size = len(mfcc_list)
+
     new_audio_num = mfcc_list[0][0]
     new_segment_num = mfcc_list[0][1]
     new_pitch = mfcc_list[0][2]
     new_frame_count = mfcc_list[0][3]
     new_mfcc = mfcc_list[0][4:]
 
-    for i in range(1, len(mfcc_list)):
+    # print("\n")
+    for i in range(1, mfcc_list_size):
         diff_count = 0
         for j in range(speaker_count):
-            print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
+            # print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             pitch = mfcc_list[i][2]
             frame_count = mfcc_list[i][3]
@@ -462,10 +487,24 @@ def main_function():
             new_frame_count = mfcc_list[i][3]
             new_mfcc = mfcc_list[i][4:]
 
-    return speaker_count
+    return speaker_count, num_segments, num_voiced_segments, mfcc_list_size
 
 
-# Call of the main function
-final_speaker_count = main_function()
-print()
-print(final_speaker_count, "number of different speakers detected in the audio clips\n")
+# Call the main function
+def main():
+    start = process_time()
+    final_speaker_count, total_segments, total_voiced_segments, total_merged_segments = count_speaker(
+        speech_folder_name, file_extension, yin_file, mfcc_file, rev_mfcc_file, merged_mfcc_file)
+    end = process_time()
+
+    # print()
+    print("Total number of segments processed:", total_segments)
+    print("Total number of voiced segments identified:", total_voiced_segments)
+    print("Total number of segments after the merger of neighboring voiced segments:", total_merged_segments)
+    print(final_speaker_count, "number of different speakers identified in all the audio clips of the input folder")
+    print("Time elapsed during the computation:", end - start, "seconds")
+
+
+# Using the special variable __name__
+if __name__ == "__main__":
+    main()
