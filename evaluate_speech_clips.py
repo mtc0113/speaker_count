@@ -45,6 +45,10 @@ temporary_directory_path2 = os.path.join(speech_folder_name, temporary_directory
 
 if os.path.exists(temporary_directory_path) is False:
     os.makedirs(temporary_directory_path)
+else:
+    os.rmdir(temporary_directory_path)
+    sleep(1.0)
+    os.makedirs(temporary_directory_path)
 
 output_file_extension = ".txt"
 # meta_file_extension = ".csv"
