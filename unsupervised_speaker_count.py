@@ -15,6 +15,7 @@ import statistics
 from numpy import linalg as la
 import csv
 import math
+import time
 
 
 # Move the control to Current Working Directory
