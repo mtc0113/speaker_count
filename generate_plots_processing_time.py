@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Script to plot Distribution of length of the clips,
+their processing time and the calculated speaker count
+by parsing a metadata file, which is generated
+by the "evaluate_speech_clips.py script" for the purpose
+from the audio clips found in an input speech folder
+
 Created on Sun May 30 01:04:57 2021
 
 @author: Partha Sarathi Paul
@@ -35,14 +41,15 @@ if os.path.exists(speech_folder_name) is False:
 # temporary_directory_path = os.path.join(speech_folder_name, temporary_directory)
 
 file_extension = ".txt"
-metadata_file = speech_folder_name + '/temp/MetaData' + file_extension
-
-if os.path.exists(metadata_file) is False:
-    sys.exit("\nFiles in folder \"" + speech_folder_name + "\" not processed. Process the clips first and try.")
-
 fig_extension = ".png"
+
+# metadata_file = speech_folder_name + '/temp/MetaData' + file_extension
+#
+# if os.path.exists(metadata_file) is False:
+#     sys.exit("\nFiles in folder \"" + speech_folder_name + "\" not processed. Process the clips first and try.")
+
 # fig_file1 = speech_folder_name + '/temp/fig1' + fig_extension
-fig_file2 = speech_folder_name + '/temp/fig2' + fig_extension
+# fig_file2 = speech_folder_name + '/temp/fig2' + fig_extension
 
 
 def join_tuple(tuple1, tuple2):
@@ -51,7 +58,14 @@ def join_tuple(tuple1, tuple2):
     return tuple3
 
 
-def main():
+def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_extension, *argv):
+    metadata_file = speech_folder_path + '/temp/MetaData' + meta_file_extension
+
+    if os.path.exists(metadata_file) is False:
+        sys.exit("\nFiles in folder \"" + speech_folder_path + "\" not processed. Process the clips first and try.")
+
+    fig_file2 = speech_folder_path + '/temp/fig2' + fig_file_extension
+
     line_count = 0
     file_metadata_List = []
     with open(metadata_file, "r") as f:
@@ -74,10 +88,10 @@ def main():
 
 
 
-    for t in file_metadata_List:
-        print(t)
+    # for t in file_metadata_List:
+    #     print(t)
 
-    if len(sys.argv) > 2 and sys.argv[2] == 'datewise':
+    if 'datewise' in argv:
         reduced_file_metadata_List = [file_metadata_List[0]]
         i = 1
         j = 2
@@ -91,10 +105,10 @@ def main():
             j += 1
         file_metadata_List = reduced_file_metadata_List
 
-        print()
-        print("The Revised List")
-        for t in file_metadata_List:
-            print(t)
+        # print()
+        # print("The Revised List")
+        # for t in file_metadata_List:
+        #     print(t)
 
 
     serial = []
@@ -139,7 +153,7 @@ def main():
 
 
     # Adding Xticks
-    if len(sys.argv) > 2 and sys.argv[2] == 'datewise':
+    if 'datewise' in argv:
         plt.xlabel('Recording Date', fontweight='bold', fontsize=15)
         plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
         plt.yscale("log")
@@ -150,9 +164,12 @@ def main():
         plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(record_date[1:], record_time[1:]))
 
     plt.legend()
-    plt.title("Change in Distribution of Clip Length and Its processing time: " + file_metadata_List[1][3])
+    plt.title("Change in Distribution of Clip Length and Its processing time: " + file_metadata_List[1][3].upper())
     plt.savefig(fig_file2)
 
+
+def main():
+    plot_processing_time(speech_folder_name, file_extension, fig_extension)
 
 # Using the special variable __name__
 if __name__ == "__main__":

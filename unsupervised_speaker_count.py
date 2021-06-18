@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+Script to find the number of different speakers
+identifiable in the set of audio clips found
+in an input speech folder
+
 Created on Sun May 30 01:04:57 2021
 
 @author: Partha Sarathi Paul

@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Script to find various metadata connected with the audio
+clips found in the input speech folder, to calculate
+speaker count in these clips using unsupervised speaker
+count module developed earlier and plot the results
+
 Created on Sun May 30 01:04:57 2021
 
 @author: Partha Sarathi Paul
@@ -10,6 +15,8 @@ import os
 import glob
 import sys
 import unsupervised_speaker_count as usc
+import generate_plots_processing_time as gpp
+import generate_plots_segment_count as gps
 import shutil
 from time import process_time
 from time import sleep
@@ -46,11 +53,19 @@ temporary_directory_path2 = os.path.join(speech_folder_name, temporary_directory
 if os.path.exists(temporary_directory_path) is False:
     os.makedirs(temporary_directory_path)
 else:
-    os.rmdir(temporary_directory_path)
+    shutil.rmtree(temporary_directory_path)
     sleep(1.0)
     os.makedirs(temporary_directory_path)
 
+if os.path.exists(temporary_directory_path2) is False:
+    os.makedirs(temporary_directory_path2)
+else:
+    shutil.rmtree(temporary_directory_path2)
+    sleep(1.0)
+    os.makedirs(temporary_directory_path2)
+
 output_file_extension = ".txt"
+fig_file_extension = ".png"
 # meta_file_extension = ".csv"
 metadata_file = speech_folder_name + '/temp/MetaData' + output_file_extension
 
@@ -123,6 +138,13 @@ def main():
 
     # Generate the metadata file
     usc.file_write(file_metadata_List, metadata_file)
+    sleep(2.0)
+    if len(sys.argv) > 2:
+        gps.plot_segment_count(speech_folder_name, output_file_extension, fig_file_extension, sys.argv[2])
+        gpp.plot_processing_time(speech_folder_name, output_file_extension, fig_file_extension, sys.argv[2])
+    else:
+        gps.plot_segment_count(speech_folder_name, output_file_extension, fig_file_extension)
+        gpp.plot_processing_time(speech_folder_name, output_file_extension, fig_file_extension)
 
 # Using the special variable __name__
 if __name__ == "__main__":
