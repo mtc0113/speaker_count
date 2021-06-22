@@ -82,7 +82,7 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 
-def main():
+def evaluate_speech_clips():
     if not os.listdir(speech_folder_name):
         sys.exit("No file in folder \"" + speech_folder_name + "\"")
 
@@ -148,4 +148,4 @@ def main():
 
 # Using the special variable __name__
 if __name__ == "__main__":
-    main()
+    evaluate_speech_clips()

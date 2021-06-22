@@ -174,10 +174,7 @@ def derive_features(file_count, filename, segment_length):
                                             win_length=win_length)
         # Deselect the first coefficient for not modeling DC component of the audio signal (as per crowd++ paper)
         segment_mfcc_select = segment_mfcc[1:]
-        # print("MFCC Frames:",len(segment_mfcc))
-        print(segment_mfcc_select.shape)
         segment_mfcc_tr = segment_mfcc_select.transpose()
-        # print("MFCC Transpose Frames:",len(segment_mfcc_tr))
 
         mfcc_tuple = ()
         frame_count = len(segment_mfcc_tr)
