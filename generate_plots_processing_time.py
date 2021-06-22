@@ -148,9 +148,9 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
     # br4 = [x + barWidth for x in br3]
 
     # Make the plot
-    plt.bar(br1, clip_length[1:], color='r', width=barWidth, edgecolor='grey', label='Clip Length')
-    plt.bar(br2, compute_time[1:], color='g', width=barWidth, edgecolor='grey', label='Process Time')
-    plt.bar(br3, speaker_count[1:], color='b', width=barWidth, edgecolor='grey', label='Speaker')
+    plt.bar(br1, clip_length[1:], color='k', width=barWidth, edgecolor='grey', label='Clip Length')
+    plt.bar(br2, compute_time[1:], color='y', width=barWidth, edgecolor='grey', label='Process Time')
+    plt.bar(br3, speaker_count[1:], color='m', width=barWidth, edgecolor='grey', label='Speaker')
 
 
     # Adding Xticks
