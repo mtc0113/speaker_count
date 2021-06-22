@@ -65,6 +65,7 @@ def plot_segment_count(speech_folder_path, meta_file_extension, fig_file_extensi
         sys.exit("\nFiles in folder \"" + speech_folder_path + "\" not processed. Process the clips first and try.")
 
     fig_file1 = speech_folder_path + '/temp/fig1' + fig_file_extension
+    fig_file3 = speech_folder_path + '/temp/fig3' + fig_file_extension
 
     line_count = 0
     file_metadata_List = []
@@ -91,7 +92,7 @@ def plot_segment_count(speech_folder_path, meta_file_extension, fig_file_extensi
     # for t in file_metadata_List:
     #     print(t)
 
-    if 'datewise' in argv:
+    if 'datewise' in argv or 'datewise' in sys.argv:
         reduced_file_metadata_List = [file_metadata_List[0]]
         i = 1
         j = 2
@@ -127,7 +128,7 @@ def plot_segment_count(speech_folder_path, meta_file_extension, fig_file_extensi
         serial.append(t[0])
         audio_name.append(t[1])
         clip_length.append(t[2])
-        recorder.append(t[3])
+        recorder.append(t[3][:3])
         record_date.append(t[4])
         record_time.append(t[5])
         num_segments.append(t[6])
@@ -139,7 +140,7 @@ def plot_segment_count(speech_folder_path, meta_file_extension, fig_file_extensi
 
     # set width of bar
     barWidth = 0.2
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(22, 11))
 
     # Set position of bar on X axis
     br1 = np.arange(len(serial[1:]))
@@ -154,20 +155,27 @@ def plot_segment_count(speech_folder_path, meta_file_extension, fig_file_extensi
     plt.bar(br4, speaker_count[1:], color='m', width=barWidth, edgecolor='grey', label='Speaker')
 
     # Adding Xticks
-    if 'datewise' in argv:
-        plt.xlabel('Recording Date', fontweight='bold', fontsize=15)
+    if 'datewise' in argv or 'datewise' in sys.argv:
+        plt.xlabel('Recorder, Recording Date', fontweight='bold', fontsize=15)
         plt.ylabel('Segment/Speaker Count', fontweight='bold', fontsize=15)
         plt.yscale("log")
-        plt.xticks([r + barWidth for r in range(len(serial[1:]))], record_date[1:])
-    else:
-        plt.xlabel('Recording Date, Time', fontweight='bold', fontsize=15)
-        plt.ylabel('Segment/Speaker Count', fontweight='bold', fontsize=15)
-        # plt.yscale("log")
-        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(record_date[1:], record_time[1:]))
+        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], record_date[1:]))
 
-    plt.legend()
-    plt.title("Change in Distribution of Clip Length and Its processing time: " + file_metadata_List[1][3].upper())
-    plt.savefig(fig_file1)
+        plt.legend(loc=1, prop={'size': 20})
+        plt.title("Change in Distribution of Various Segment Counts: Test Data")
+        plt.savefig(fig_file1)
+    else:
+        plt.xlabel('Recording Type , Recording ID', fontweight='bold', fontsize=15)
+        plt.ylabel('Segment/Speaker Count', fontweight='bold', fontsize=15)
+        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], serial[1:]))
+
+        plt.legend(loc=1, prop={'size': 20})
+        plt.title("Change in Distribution of Various Segment Counts: Benchmark Data")
+        plt.savefig(fig_file3)
+
+    # plt.legend()
+    # plt.title("Change in Distribution of Clip Length and Its processing time: Benchmark Data")
+    # plt.savefig(fig_file1)
 
 
 def main():

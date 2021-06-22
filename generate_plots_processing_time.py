@@ -65,6 +65,7 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
         sys.exit("\nFiles in folder \"" + speech_folder_path + "\" not processed. Process the clips first and try.")
 
     fig_file2 = speech_folder_path + '/temp/fig2' + fig_file_extension
+    fig_file4 = speech_folder_path + '/temp/fig4' + fig_file_extension
 
     line_count = 0
     file_metadata_List = []
@@ -91,7 +92,7 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
     # for t in file_metadata_List:
     #     print(t)
 
-    if 'datewise' in argv:
+    if 'datewise' in argv or 'datewise' in sys.argv:
         reduced_file_metadata_List = [file_metadata_List[0]]
         i = 1
         j = 2
@@ -126,7 +127,7 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
         serial.append(t[0])
         audio_name.append(t[1])
         clip_length.append(t[2])
-        recorder.append(t[3])
+        recorder.append(t[3][:3])
         record_date.append(t[4])
         record_time.append(t[5])
         num_segments.append(t[6])
@@ -138,7 +139,7 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
 
     # set width of bar
     barWidth = 0.25
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(22, 11))
 
     # Set position of bar on X axis
     br1 = np.arange(len(serial[1:]))
@@ -153,19 +154,27 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
 
 
     # Adding Xticks
-    if 'datewise' in argv:
-        plt.xlabel('Recording Date', fontweight='bold', fontsize=15)
+    if 'datewise' in argv or 'datewise' in sys.argv:
+        plt.xlabel('Recorder, Recording Date', fontweight='bold', fontsize=15)
         plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
         plt.yscale("log")
-        plt.xticks([r + barWidth for r in range(len(serial[1:]))], record_date[1:])
-    else:
-        plt.xlabel('Recording Date, Time', fontweight='bold', fontsize=15)
-        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
-        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(record_date[1:], record_time[1:]))
+        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], record_date[1:]))
 
-    plt.legend()
-    plt.title("Change in Distribution of Clip Length and Its processing time: " + file_metadata_List[1][3].upper())
-    plt.savefig(fig_file2)
+        plt.legend(loc=1, prop={'size': 20})
+        plt.title("Change in Distribution of Clip Length and Its processing time: Test Data")
+        plt.savefig(fig_file2)
+    else:
+        plt.xlabel('Recording Type , Recording ID', fontweight='bold', fontsize=15)
+        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
+        plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], serial[1:]))
+
+        plt.legend(loc=1, prop={'size': 20})
+        plt.title("Change in Distribution of Clip Length and Its processing time: Benchmark Data")
+        plt.savefig(fig_file4)
+
+    # plt.legend()
+    # plt.title("Change in Distribution of Clip Length and Its processing time: Benchmark Data")
+    # plt.savefig(fig_file2)
 
 
 def main():
