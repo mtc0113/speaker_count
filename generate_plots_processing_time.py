@@ -127,7 +127,7 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
         serial.append(t[0])
         audio_name.append(t[1])
         clip_length.append(t[2])
-        recorder.append(t[3][:3])
+        recorder.append(t[3])
         record_date.append(t[4])
         record_time.append(t[5])
         num_segments.append(t[6])
@@ -155,21 +155,27 @@ def plot_processing_time(speech_folder_path, meta_file_extension, fig_file_exten
 
     # Adding Xticks
     if 'datewise' in argv or 'datewise' in sys.argv:
-        plt.xlabel('Recorder, Recording Date', fontweight='bold', fontsize=15)
-        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
+        plt.xlabel('Recorder, Recording Date', fontweight='bold', fontsize=20)
+        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=20)
         plt.yscale("log")
+        plt.yticks(fontsize=15, rotation=0)
         plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], record_date[1:]))
+        plt.xticks(fontsize=15, rotation=10)
 
         plt.legend(loc=1, prop={'size': 20})
-        plt.title("Change in Distribution of Clip Length and Its processing time: Test Data")
+        plt.title("Change in Distribution of Clip Length and Its processing time: Test Data",
+                  fontweight='bold', fontsize=20)
         plt.savefig(fig_file2)
     else:
-        plt.xlabel('Recording Type , Recording ID', fontweight='bold', fontsize=15)
-        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=15)
+        plt.xlabel('Recording Type , Recording ID', fontweight='bold', fontsize=20)
+        plt.ylabel('Clip Length/Process Time (sec), #Speakers', fontweight='bold', fontsize=20)
+        plt.yticks(fontsize=15, rotation=0)
         plt.xticks([r + barWidth for r in range(len(serial[1:]))], zip(recorder[1:], serial[1:]))
+        plt.xticks(fontsize=15, rotation=10)
 
         plt.legend(loc=1, prop={'size': 20})
-        plt.title("Change in Distribution of Clip Length and Its processing time: Benchmark Data")
+        plt.title("Change in Distribution of Clip Length and Its processing time: Benchmark Data",
+                  fontweight='bold', fontsize=20)
         plt.savefig(fig_file4)
 
     # plt.legend()
