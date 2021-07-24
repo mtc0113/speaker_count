@@ -92,9 +92,9 @@ if n > 3:
     MFCC_DIST_DIFF_UN = float(sys.argv[3])
 
 # YIN Pitch Detection Method Parameters
-frame_length = 1024
-hop_length = frame_length // 8
-win_length = frame_length // 8
+frame_length = 512
+hop_length = frame_length // 4
+win_length = frame_length // 4
 
 fmin = 10
 fmax = 2093
@@ -172,6 +172,7 @@ def derive_features(file_count, filename, segment_length):
         # Calculate MFCCs for the segment
         segment_mfcc = librosa.feature.mfcc(speech_segment, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mfcc=n_mfcc,
                                             win_length=win_length)
+
         # Deselect the first coefficient for not modeling DC component of the audio signal (as per crowd++ paper)
         segment_mfcc_select = segment_mfcc[1:]
         segment_mfcc_tr = segment_mfcc_select.transpose()
@@ -315,7 +316,7 @@ def Remove_Non_Voiced(in_file1, in_file2, frame_count, out_file):
     return line_count
 
 
-# Function to colculate the column mean of an MFCC matrix
+# Function to calculate the column mean of an MFCC matrix
 # Order of MFCC representation is (num_frames,n_fft)
 # MFCC is represented as an 1-D array obtained by appending
 # 'num_frame' rows of size 'n_fft' placed side-by-side
@@ -460,7 +461,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
     for i in range(1, mfcc_list_size):
         diff_count = 0
         for j in range(speaker_count):
-            # print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
+            print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             pitch = mfcc_list[i][2]
             frame_count = mfcc_list[i][3]
@@ -472,7 +473,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
                 diff_count += 1
             elif distance >= MFCC_DIST_DIFF_UN:  # mfcc distance is larger than a threshold, so different speaker
                 diff_count += 1
-            else:  # mfcc distance is larger than a threshold, so different speaker
+            else:  # same speaker
                 if gender_decision(pitch, new_pitch) == 1 and distance <= MFCC_DIST_SAME_UN:
                     # Merge the segment
                     new_pitch = (new_pitch + pitch) / 2
