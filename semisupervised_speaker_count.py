@@ -67,6 +67,7 @@ rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extension
 rev_cal_mfcc_file = calibration_folder_name + '/temp/rev.MFCC' + output_file_extension
 merged_cal_mfcc_file = calibration_folder_name + '/temp/merged.MFCC' + output_file_extension
+new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
 # sampling_rate = 22050
@@ -251,7 +252,7 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
 
     new_feature_list.append(trn_feature_list[0])
     speaker_count = 1
-    owner_speech_percentage = 0
+    distance = 0
     length = 0
 
     # new_audio_num = new_feature_list[0][0]
@@ -267,7 +268,8 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
         mfcc = tst_feature_list[i][4:]
 
         for j in range(speaker_count):
-            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Current Speaker Count:", speaker_count)
+            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length,
+                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             # pitch = tst_feature_list[i][2]
             # frame_count = tst_feature_list[i][3]
@@ -294,9 +296,9 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
                     new_pitch = (new_pitch + pitch) / 2
                     new_frame_count = new_frame_count + frame_count
                     new_mfcc = new_mfcc + mfcc
-
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     new_feature_list[j] = new_item
+                    break
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
@@ -319,6 +321,9 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
         owner_presence_status = False
 
     owner_speech_percentage = 100 * (new_feature_list[0][3] - trn_feature_list[0][3]) / length
+
+    # Store new feature list in a file
+    usc.file_write(new_feature_list, new_mfcc_file)
 
     return speaker_count, owner_presence_status, owner_speech_percentage
 

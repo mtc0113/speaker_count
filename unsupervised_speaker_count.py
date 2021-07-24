@@ -469,19 +469,22 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
 
             distance = get_Distance(new_mfcc, mfcc)
 
-            if gender_decision(pitch, new_pitch) == 0:  # different gender observed from pitch, so different speaker
+            # different gender observed from pitch, so different speaker
+            if gender_decision(pitch, new_pitch) == 0:
                 diff_count += 1
-            elif distance >= MFCC_DIST_DIFF_UN:  # mfcc distance is larger than a threshold, so different speaker
+            # mfcc distance is larger than a threshold, so different speaker
+            elif distance >= MFCC_DIST_DIFF_UN:
                 diff_count += 1
-            else:  # same speaker
+            # same speaker
+            else:
                 if gender_decision(pitch, new_pitch) == 1 and distance <= MFCC_DIST_SAME_UN:
                     # Merge the segment
                     new_pitch = (new_pitch + pitch) / 2
                     new_frame_count = new_frame_count + frame_count
                     new_mfcc = new_mfcc + mfcc
-
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     mfcc_list[j] = new_item
+                    break
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
