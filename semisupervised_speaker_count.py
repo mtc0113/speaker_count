@@ -94,9 +94,9 @@ MFCC_DIST_DIFF_SEMI = 21.6
 CAL_DURATION_SEC_LOWER = 45.0
 
 # YIN Pitch Detection Method Parameters
-frame_length = 256
-hop_length = frame_length // 2
-win_length = frame_length // 2
+frame_length = 512
+hop_length = frame_length // 4
+win_length = frame_length // 4
 
 fmin = 10
 fmax = 2093
