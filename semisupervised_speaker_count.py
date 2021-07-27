@@ -110,7 +110,6 @@ n_mfcc = 20
 # Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
 if not sys.warnoptions:
     import warnings
-
     warnings.simplefilter("ignore")
 
 
