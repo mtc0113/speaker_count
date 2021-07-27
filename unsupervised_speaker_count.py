@@ -65,6 +65,7 @@ mfcc_file = speech_folder_name + '/temp/MFCC' + output_file_extension
 rev_mfcc_file = speech_folder_name + '/temp/rev.MFCC' + output_file_extension
 
 merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extension
+new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
 # sr = 22050
@@ -447,54 +448,73 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
         speaker_count = 1
     #     print(num_voiced_segments, "number of voiced segments found in folder \"" + speech_folder_name + "\"\n")
 
+
     # Iteratively merge matching neighboring voice segments in the list
     mfcc_list = merge_segments(rev_cept_file, merged_cept_file)
     mfcc_list_size = len(mfcc_list)
 
-    new_audio_num = mfcc_list[0][0]
-    new_segment_num = mfcc_list[0][1]
-    new_pitch = mfcc_list[0][2]
-    new_frame_count = mfcc_list[0][3]
-    new_mfcc = mfcc_list[0][4:]
+    new_mfcc_list = []
+    new_mfcc_list.append(mfcc_list[0])
+    # new_audio_num = mfcc_list[0][0]
+    # new_segment_num = mfcc_list[0][1]
+    #
+    # new_pitch = mfcc_list[0][2]
+    # new_frame_count = mfcc_list[0][3]
+    # new_mfcc = mfcc_list[0][4:]
 
     # print("\n")
     for i in range(1, mfcc_list_size):
         diff_count = 0
-        for j in range(speaker_count):
-            print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
-            # for each segment i, compare it with each previously admitted segment j
-            pitch = mfcc_list[i][2]
-            frame_count = mfcc_list[i][3]
-            mfcc = mfcc_list[i][4:]
+        pitch = mfcc_list[i][2]
+        frame_count = mfcc_list[i][3]
+        mfcc = mfcc_list[i][4:]
 
+        for j in range(speaker_count):
+            # print("i =", i, "j =", j, "List Size =", len(mfcc_list), "Current Speaker Count:", speaker_count)
+            # for each segment i, compare it with each previously admitted segment j
+
+            new_audio_num = new_mfcc_list[j][0]
+            new_segment_num = new_mfcc_list[j][1]
+            new_pitch = new_mfcc_list[j][2]
+            new_frame_count = new_mfcc_list[j][3]
+            new_mfcc = new_mfcc_list[j][4:]
+
+            decision = gender_decision(new_pitch, pitch)
             distance = get_Distance(new_mfcc, mfcc)
 
             # different gender observed from pitch, so different speaker
-            if gender_decision(pitch, new_pitch) == 0:
+            if decision == 0:
                 diff_count += 1
             # mfcc distance is larger than a threshold, so different speaker
             elif distance >= MFCC_DIST_DIFF_UN:
                 diff_count += 1
             # same speaker
             else:
-                if gender_decision(pitch, new_pitch) == 1 and distance <= MFCC_DIST_SAME_UN:
+                if decision == 1 and distance <= MFCC_DIST_SAME_UN:
                     # Merge the segment
-                    new_pitch = (new_pitch + pitch) / 2
+                    # new_pitch = (new_pitch + pitch) / 2
                     new_frame_count = new_frame_count + frame_count
+                    new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
                     new_mfcc = new_mfcc + mfcc
+
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
-                    mfcc_list[j] = new_item
+                    new_mfcc_list[j] = new_item
                     break
+
+            print("i =", i, "j =", j, "Decision:", decision,
+                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
             speaker_count += 1
-            new_audio_num = mfcc_list[i][0]
-            new_segment_num = mfcc_list[i][1]
-            new_pitch = mfcc_list[i][2]
-            new_frame_count = mfcc_list[i][3]
-            new_mfcc = mfcc_list[i][4:]
+            # new_audio_num = mfcc_list[i][0]
+            # new_segment_num = mfcc_list[i][1]
+            # new_pitch = mfcc_list[i][2]
+            # new_frame_count = mfcc_list[i][3]
+            # new_mfcc = mfcc_list[i][4:]
+            new_mfcc_list.append(mfcc_list[i])
 
+    file_write(new_mfcc_list, new_mfcc_file)
     return speaker_count, num_segments, num_voiced_segments, mfcc_list_size
 
 

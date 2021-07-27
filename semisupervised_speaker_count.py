@@ -268,37 +268,49 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
         mfcc = tst_feature_list[i][4:]
 
         for j in range(speaker_count):
-            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length,
-                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+            # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
+            #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
             # for each segment i, compare it with each previously admitted segment j
             # pitch = tst_feature_list[i][2]
             # frame_count = tst_feature_list[i][3]
             # mfcc = tst_feature_list[i][4:]
             new_audio_num = new_feature_list[j][0]
             new_segment_num = new_feature_list[j][1]
+
             new_pitch = new_feature_list[j][2]
             new_frame_count = new_feature_list[j][3]
             new_mfcc = new_feature_list[j][4:]
 
+            # pitch = tst_feature_list[i][2]
+            # frame_count = tst_feature_list[i][3]
+            # mfcc = tst_feature_list[i][4:]
+
+            decision = usc.gender_decision(new_pitch, pitch)
             distance = usc.get_Distance(new_mfcc, mfcc)
 
             # different gender observed from pitch, so different speaker
-            if usc.gender_decision(pitch, new_pitch) == 0:
+            if decision == 0:
                 diff_count += 1
             # mfcc distance is larger than a threshold, so different speaker
             elif (j == 0 and distance >= MFCC_DIST_DIFF_SEMI) or (j > 0 and distance >= MFCC_DIST_DIFF_UN):
                 diff_count += 1
-            # same speaker
+            # May be same speaker
             else:
+                # Same Speaker
                 if ((j == 0 and distance <= MFCC_DIST_SAME_SEMI) or (j > 0 and distance <= MFCC_DIST_SAME_UN)) \
-                        and usc.gender_decision(pitch, new_pitch) == 1:
+                        and decision == 1:
                     # Merge the segment
-                    new_pitch = (new_pitch + pitch) / 2
+                    # new_pitch = (new_pitch + pitch) / 2
+                    new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
                     new_frame_count = new_frame_count + frame_count
                     new_mfcc = new_mfcc + mfcc
+
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     new_feature_list[j] = new_item
                     break
+
+            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
+                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
