@@ -73,39 +73,39 @@ new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 # sampling_rate = 22050
 
 # Application Parameters: Adopted from crowdpp Android Implementation
-SEGMENT_LENGTH = 3.0  # measured in second
+SEGMENT_LENGTH = usc.SEGMENT_LENGTH  # measured in second
 
-PITCH_MALE_UPPER = 160  # measured in Hertz
-PITCH_FEMALE_LOWER = 190  # measured in Hertz
-PITCH_HUMAN_UPPER = 450  # measured in Hertz
-PITCH_HUMAN_LOWER = 50  # measured in Hertz
+PITCH_MALE_UPPER = usc.PITCH_MALE_UPPER  # measured in Hertz
+PITCH_FEMALE_LOWER = usc.PITCH_FEMALE_LOWER  # measured in Hertz
+PITCH_HUMAN_UPPER = usc.PITCH_HUMAN_UPPER  # measured in Hertz
+PITCH_HUMAN_LOWER = usc.PITCH_HUMAN_LOWER  # measured in Hertz
 
-PITCH_RATE_LOWER = 0.05
-PITCH_MU_LOWER = 50  # measured in Hertz
-PITCH_MU_UPPER = 450  # measured in Hertz
-PITCH_SIGMA_UPPER = 100  # measured in Hertz
+PITCH_RATE_LOWER = usc.PITCH_RATE_LOWER
+PITCH_MU_LOWER = usc.PITCH_MU_LOWER  # measured in Hertz
+PITCH_MU_UPPER = usc.PITCH_MU_UPPER  # measured in Hertz
+PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
-MFCC_DIST_SAME_UN = 15.6
-MFCC_DIST_DIFF_UN = 21.6
+MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
+MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
 MFCC_DIST_SAME_SEMI = 15.6
 MFCC_DIST_DIFF_SEMI = 21.6
 
 # Calibration Related Parameter
-CAL_DURATION_SEC_LOWER = 45.0
+CAL_DURATION_SEC_LOWER = 45.0   # measured in second
 
 # YIN Pitch Detection Method Parameters
-frame_length = 512
-hop_length = frame_length // 4
-win_length = frame_length // 4
+frame_length = usc.frame_length
+hop_length = usc.hop_length
+win_length = usc.win_length
 
-fmin = 10
-fmax = 2093
-trough_threshold = 0.1
+fmin = usc.fmin
+fmax = usc.fmax
+trough_threshold = usc.trough_threshold
 
 # MFCC Signal Processing Parameters
-n_fft = frame_length
-n_mfcc = 20
+n_fft = usc.n_fft
+n_mfcc = usc.n_mfcc
 
 # Suppress repeated "PySoundFile failed. Trying audioread instead." warning by Librosa
 if not sys.warnoptions:

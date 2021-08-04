@@ -68,13 +68,13 @@ merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extens
 new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
-# sr = 22050
+sample_rate = 22050
 
 # Application Parameters: Adopted from crowdpp Android Implementation
 SEGMENT_LENGTH = 3.0  # measured in second
 
 PITCH_MALE_UPPER = 160  # measured in Hertz
-PITCH_FEMALE_LOWER = 190  # measured in Hertz
+PITCH_FEMALE_LOWER = 165  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
@@ -157,7 +157,8 @@ def derive_features(file_count, filename, segment_length):
     segment_count = 0
     while end_segment <= duration:
         # Load a speech segment of duration 'segment_length' from the input audio clip
-        speech_segment, sr = librosa.load(filename, mono=True, offset=start_segment, duration=segment_length)
+        speech_segment, sr = librosa.load(filename, sr = sample_rate, mono=True,
+                                          offset=start_segment, duration=segment_length)
         segment_count += 1
 
         # Calculate average fundamental frequency of the segment
