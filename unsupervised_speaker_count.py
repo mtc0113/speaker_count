@@ -68,13 +68,13 @@ merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extens
 new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
-sample_rate = 44100
+sample_rate = 22050
 
 # Application Parameters: Adopted from crowdpp Android Implementation
 SEGMENT_LENGTH = 3.0  # measured in second
 
 PITCH_MALE_UPPER = 160  # measured in Hertz
-PITCH_FEMALE_LOWER = 190  # measured in Hertz
+PITCH_FEMALE_LOWER = 165  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
@@ -456,6 +456,7 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
 
     new_mfcc_list = []
     new_mfcc_list.append(mfcc_list[0])
+    k = 0
     # new_audio_num = mfcc_list[0][0]
     # new_segment_num = mfcc_list[0][1]
     #
@@ -489,9 +490,11 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
             # different gender observed from pitch, so different speaker
             if decision == 0:
                 diff_count += 1
+                k += 1
             # mfcc distance is larger than a threshold, so different speaker
             elif distance >= MFCC_DIST_DIFF_UN:
                 diff_count += 1
+                k += 1
             # same speaker
             else:
                 if decision == 1 and distance <= MFCC_DIST_SAME_UN:
@@ -503,11 +506,13 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
 
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     new_mfcc_list[j] = new_item
+                    k += 1
                     break
 
             # print("i =", i, "j =", j, "Decision:", decision,
             #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
 
+        print("k =", k, "Diff Count:", diff_count)
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
             speaker_count += 1

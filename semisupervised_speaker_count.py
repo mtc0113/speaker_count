@@ -316,7 +316,7 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
                     break
             # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
             #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
-        print("k =", k)
+        print("k =", k, "Diff Count:", diff_count)
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
             speaker_count += 1
