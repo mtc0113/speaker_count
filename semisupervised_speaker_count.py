@@ -88,8 +88,8 @@ PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
 MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
-MFCC_DIST_SAME_SEMI = 15.6
-MFCC_DIST_DIFF_SEMI = 21.6
+MFCC_DIST_SAME_SEMI = 18
+MFCC_DIST_DIFF_SEMI = 25
 
 # Calibration Related Parameter
 CAL_DURATION_SEC_LOWER = 45.0   # measured in second
@@ -287,6 +287,9 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             decision = usc.gender_decision(new_pitch, pitch)
             distance = usc.get_Distance(new_mfcc, mfcc)
 
+            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
+                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+
             # different gender observed from pitch, so different speaker
             if decision == 0:
                 diff_count += 1
@@ -308,8 +311,8 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
                     new_feature_list[j] = new_item
                     break
 
-            print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
-                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+            # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
+            #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:

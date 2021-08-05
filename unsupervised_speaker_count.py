@@ -68,13 +68,13 @@ merged_mfcc_file = speech_folder_name + '/temp/merged.MFCC' + output_file_extens
 new_mfcc_file = speech_folder_name + '/temp/new.MFCC' + output_file_extension
 
 # Assumed Sampling Rate
-sample_rate = 22050
+sample_rate = 44100
 
 # Application Parameters: Adopted from crowdpp Android Implementation
 SEGMENT_LENGTH = 3.0  # measured in second
 
 PITCH_MALE_UPPER = 160  # measured in Hertz
-PITCH_FEMALE_LOWER = 165  # measured in Hertz
+PITCH_FEMALE_LOWER = 190  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
@@ -84,8 +84,8 @@ PITCH_MU_UPPER = 450  # measured in Hertz
 PITCH_SIGMA_UPPER = 100  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
-MFCC_DIST_SAME_UN = 15.6
-MFCC_DIST_DIFF_UN = 21.6
+MFCC_DIST_SAME_UN = 18
+MFCC_DIST_DIFF_UN = 25
 
 # Set Tuning Parameters using command line arguments to the script
 if n > 3:
@@ -483,6 +483,9 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
             decision = gender_decision(new_pitch, pitch)
             distance = get_Distance(new_mfcc, mfcc)
 
+            print("i =", i, "j =", j, "Decision:", decision,
+                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+
             # different gender observed from pitch, so different speaker
             if decision == 0:
                 diff_count += 1
@@ -502,8 +505,8 @@ def count_speaker(speech_folder, audio_extension, pitch_file, cept_file, rev_cep
                     new_mfcc_list[j] = new_item
                     break
 
-            print("i =", i, "j =", j, "Decision:", decision,
-                  "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+            # print("i =", i, "j =", j, "Decision:", decision,
+            #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
 
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
