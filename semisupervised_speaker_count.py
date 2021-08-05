@@ -88,8 +88,8 @@ PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
 MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
-MFCC_DIST_SAME_SEMI = 18
-MFCC_DIST_DIFF_SEMI = 25
+MFCC_DIST_SAME_SEMI = 60
+MFCC_DIST_DIFF_SEMI = 60
 
 # Calibration Related Parameter
 CAL_DURATION_SEC_LOWER = 45.0   # measured in second
@@ -253,7 +253,6 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
     speaker_count = 1
     distance = 0
     length = 0
-    k = 0
 
     # new_audio_num = new_feature_list[0][0]
     # new_segment_num = new_feature_list[0][1]
@@ -294,11 +293,9 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             # different gender observed from pitch, so different speaker
             if decision == 0:
                 diff_count += 1
-                k += 1
             # mfcc distance is larger than a threshold, so different speaker
             elif (j == 0 and distance >= MFCC_DIST_DIFF_SEMI) or (j > 0 and distance >= MFCC_DIST_DIFF_UN):
                 diff_count += 1
-                k += 1
             # May be same speaker
             else:
                 # Same Speaker
@@ -312,11 +309,10 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
 
                     new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
                     new_feature_list[j] = new_item
-                    k += 1
                     break
             # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
             #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
-        print("k =", k, "Diff Count:", diff_count)
+        print("Diff Count:", diff_count)
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
             speaker_count += 1
