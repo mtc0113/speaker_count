@@ -88,8 +88,8 @@ PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
 MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
-MFCC_DIST_SAME_SEMI = 60
-MFCC_DIST_DIFF_SEMI = 60
+MFCC_DIST_SAME_SEMI = 15.6
+MFCC_DIST_DIFF_SEMI = 21.6
 
 # Calibration Related Parameter
 CAL_DURATION_SEC_LOWER = 45.0   # measured in second
@@ -299,8 +299,9 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             # May be same speaker
             else:
                 # Same Speaker
-                if ((j == 0 and distance <= MFCC_DIST_SAME_SEMI) or (j > 0 and distance <= MFCC_DIST_SAME_UN)) \
-                        and decision == 1:
+                if decision == 1 and ((j == 0 and distance <= MFCC_DIST_SAME_SEMI) or
+                                      (j > 0 and distance <= MFCC_DIST_SAME_UN)):
+                    print("Merge the test segment i =", i, "with new segment j =", j, "\n")
                     # Merge the segment
                     # new_pitch = (new_pitch + pitch) / 2
                     new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
@@ -312,7 +313,7 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
                     break
             # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
             #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
-        print("Diff Count:", diff_count)
+        print("Diff Count:", diff_count, "\n")
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
             speaker_count += 1
