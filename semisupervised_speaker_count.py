@@ -88,8 +88,8 @@ PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
 MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
-MFCC_DIST_SAME_SEMI = 15.6
-MFCC_DIST_DIFF_SEMI = 21.6
+MFCC_DIST_SAME_SEMI = 7
+MFCC_DIST_DIFF_SEMI = 60
 
 # Calibration Related Parameter
 CAL_DURATION_SEC_LOWER = 45.0   # measured in second
@@ -266,6 +266,10 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
         frame_count = tst_feature_list[i][3]
         mfcc = tst_feature_list[i][4:]
 
+        j_best_match = -1
+        best_distance_semi = MFCC_DIST_SAME_SEMI
+        best_distance_un = MFCC_DIST_SAME_UN
+
         for j in range(speaker_count):
             # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
             #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
@@ -273,11 +277,11 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             # pitch = tst_feature_list[i][2]
             # frame_count = tst_feature_list[i][3]
             # mfcc = tst_feature_list[i][4:]
-            new_audio_num = new_feature_list[j][0]
-            new_segment_num = new_feature_list[j][1]
+            # new_audio_num = new_feature_list[j][0]
+            # new_segment_num = new_feature_list[j][1]
 
             new_pitch = new_feature_list[j][2]
-            new_frame_count = new_feature_list[j][3]
+            # new_frame_count = new_feature_list[j][3]
             new_mfcc = new_feature_list[j][4:]
 
             # pitch = tst_feature_list[i][2]
@@ -299,20 +303,24 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             # May be same speaker
             else:
                 # Same Speaker
-                if decision == 1 and ((j == 0 and distance <= MFCC_DIST_SAME_SEMI) or
-                                      (j > 0 and distance <= MFCC_DIST_SAME_UN)):
-                    print("Merge the test segment i =", i, "with new segment j =", j, "\n")
-                    # Merge the segment
-                    # new_pitch = (new_pitch + pitch) / 2
-                    new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
-                    new_frame_count = new_frame_count + frame_count
-                    new_mfcc = new_mfcc + mfcc
+                if decision == 1 and ((j == 0 and distance <= best_distance_semi) or
+                                      (j > 0 and distance <= best_distance_un)):
+                    # Update the best matching speaker index for segment i
+                    print("Compare the test segment i =", i, "with new segment j =", j)
+                    j_best_match = j
+                    best_distance_semi = distance
+                    best_distance_un = distance
 
-                    new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
-                    new_feature_list[j] = new_item
-                    break
-            # print("i =", i, "j =", j, "New length:", new_feature_list[0][3], "length:", length, "Decision:", decision,
-            #       "Distance:", distance, "Diff Count:", diff_count, "Current Speaker Count:", speaker_count)
+                    # # Merge the segment
+                    # # new_pitch = (new_pitch + pitch) / 2
+                    # new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
+                    # new_frame_count = new_frame_count + frame_count
+                    # new_mfcc = new_mfcc + mfcc
+                    #
+                    # new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
+                    # new_feature_list[j] = new_item
+                    # break
+
         print("Diff Count:", diff_count, "\n")
         # admit as a new speaker if different from all the admitted speakers
         if diff_count == speaker_count:
@@ -323,6 +331,25 @@ def semisupervised_speaker_counting(tst_cept_file, trn_cept_file):
             # new_frame_count = new_feature_list[i][3]
             # new_mfcc = new_feature_list[i][4:]
             new_feature_list.append(tst_feature_list[i])
+        else:
+            if j_best_match >= 0:
+                # Merge the segment i with best matching speaker segment
+                new_audio_num = new_feature_list[j_best_match][0]
+                new_segment_num = new_feature_list[j_best_match][1]
+
+                new_pitch = new_feature_list[j_best_match][2]
+                new_frame_count = new_feature_list[j_best_match][3]
+                new_mfcc = new_feature_list[j_best_match][4:]
+                # new_pitch = (new_pitch + pitch) / 2
+                new_pitch = (new_pitch * new_frame_count + pitch * frame_count) / (new_frame_count + frame_count)
+                new_frame_count = new_frame_count + frame_count
+                new_mfcc = new_mfcc + mfcc
+
+                new_item = (new_audio_num, new_segment_num, new_pitch, new_frame_count) + tuple(new_mfcc)
+                new_feature_list[j_best_match] = new_item
+
+                print("Merge the test segment i =", i, "with new segment j =", j_best_match, "\n")
+                # break
 
         # Revise the observed speech length using frame count of current test segment
         length += frame_count
