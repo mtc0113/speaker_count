@@ -85,7 +85,7 @@ PITCH_SIGMA_UPPER = 100  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = 7
-MFCC_DIST_DIFF_UN = 60
+MFCC_DIST_DIFF_UN = 25
 
 # Set Tuning Parameters using command line arguments to the script
 if n > 3:
