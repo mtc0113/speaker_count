@@ -74,7 +74,7 @@ sample_rate = 44100
 SEGMENT_LENGTH = 3.0  # measured in second
 
 PITCH_MALE_UPPER = 155  # measured in Hertz
-PITCH_FEMALE_LOWER = 165  # measured in Hertz
+PITCH_FEMALE_LOWER = 160  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
@@ -85,7 +85,7 @@ PITCH_SIGMA_UPPER = 100  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = 7
-MFCC_DIST_DIFF_UN = 25
+MFCC_DIST_DIFF_UN = 21
 
 # Set Tuning Parameters using command line arguments to the script
 if n > 3:
@@ -322,12 +322,14 @@ def Remove_Non_Voiced(in_file1, in_file2, frame_count, out_file):
 # Order of MFCC representation is (num_frames,n_fft)
 # MFCC is represented as an 1-D array obtained by appending
 # 'num_frame' rows of size 'n_fft' placed side-by-side
+# Number of MFCCs is (n_mfcc - 1) due to deselection of the first coefficient
 def get_column_mean(mfcc):
     column_mean_arr = []
+    n_columns = n_mfcc - 1
 
-    for i in range(n_mfcc):
+    for i in range(n_columns):
         column = []
-        for j in range(i, len(mfcc), n_mfcc):
+        for j in range(i, len(mfcc), n_columns):
             column.append(mfcc[j])
 
         # print(len(column))

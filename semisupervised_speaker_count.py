@@ -88,8 +88,8 @@ PITCH_SIGMA_UPPER = usc.PITCH_SIGMA_UPPER  # measured in Hertz
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
 MFCC_DIST_SAME_UN = usc.MFCC_DIST_SAME_UN
 MFCC_DIST_DIFF_UN = usc.MFCC_DIST_DIFF_UN
-MFCC_DIST_SAME_SEMI = 7
-MFCC_DIST_DIFF_SEMI = 25
+MFCC_DIST_SAME_SEMI = usc.MFCC_DIST_SAME_UN
+MFCC_DIST_DIFF_SEMI = usc.MFCC_DIST_DIFF_UN
 
 # Calibration Related Parameter
 CAL_DURATION_SEC_LOWER = 45.0   # measured in second
