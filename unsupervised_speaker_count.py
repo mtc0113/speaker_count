@@ -74,7 +74,7 @@ sample_rate = 44100
 SEGMENT_LENGTH = 3.0  # measured in second
 
 PITCH_MALE_UPPER = 155  # measured in Hertz
-PITCH_FEMALE_LOWER = 160  # measured in Hertz
+PITCH_FEMALE_LOWER = 165  # measured in Hertz
 PITCH_HUMAN_UPPER = 450  # measured in Hertz
 PITCH_HUMAN_LOWER = 50  # measured in Hertz
 
@@ -84,8 +84,8 @@ PITCH_MU_UPPER = 450  # measured in Hertz
 PITCH_SIGMA_UPPER = 100  # measured in Hertz
 
 # Default Tuning Parameters: Adopted from crowdpp Android Implementation
-MFCC_DIST_SAME_UN = 7
-MFCC_DIST_DIFF_UN = 21
+MFCC_DIST_SAME_UN = 14
+MFCC_DIST_DIFF_UN = 28
 
 # Set Tuning Parameters using command line arguments to the script
 if n > 3:
